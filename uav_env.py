@@ -22,7 +22,7 @@ class UAVenv(gym.Env):
     UAV_HEIGHT = 25
     UAV_VELOCITY = 10           # m/sec
     BS_LOC = np.zeros((NUM_UAV, 3))
-    THETA = 2 * math.pi / NUM_UAV
+    THETA = 15 * math.pi/180    # in radian
     BW_RB = 180e3               # Bandwidth for a resource block
     BW_UAV = 5e6                # Total Bandwidth per UAV
     ACTUAL_BW_UAV = BW_UAV * 0.9 / BW_RB
@@ -52,13 +52,13 @@ class UAVenv(gym.Env):
     def __init__(self):
         super(UAVenv, self).__init__()
         # Defining action spaces // UAV RB allocation to each user increase each by 1 until remains
-        self.action_space = spaces.Box(low=0,
-                                       high=1, shape=(self.NUM_UAV, self.NUM_USER), dtype=np.float32)
+        # Five different action for the movement of each UAV
+        self.action_space = spaces.discrete(shape=(1, self.NUM_UAV), dtype=np.integer32)
         # Defining Observation spaces // UAV RB to each user
-        self.observation_space = spaces.Box(low=0,
-                                            high=1, shape=(self.NUM_UAV, self.NUM_USER), dtype=np.float32)
+        # Position of the UAV in space // constant height and X and Y pos
+        self.observation_space = spaces.discrete(shape=(2, self.NUM_UAV), dtype=np.integer32)
         self.u_loc = self.USER_LOC
-        self.state = np.zeros(self.NUM_UAV, 3)
+        self.state = np.zeros((self.NUM_UAV, 3))
         self.coverage_radius = self.UAV_HEIGHT * np.tan(self.THETA / 2)
 
     def step(self, action):
@@ -73,7 +73,11 @@ class UAVenv(gym.Env):
         dist_u_uav = np.array([])
         temp_dist = []
         for i in range(self.NUM_UAV):
-            for j in range(self.NUM_USER):
+            tem_x = self.state[i][0]
+            tem_y = self.state[i][1]
+            # one step action
+            self.state[i][0]
+            self.state[i][1]
                 # Distance formula ( UAV loc is stored as (X,Y,Z))
                 temp_dist[j] = math.sqrt(
                     (self.u_loc[j, 0] - self.bs_loc[i, 0]) ** 2 + (self.u_loc[j, 1] - self.bs_loc[i,

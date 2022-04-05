@@ -26,6 +26,7 @@ class UAVenv(gym.Env):
     BW_RB = 180e3               # Bandwidth for a resource block
     BW_UAV = 5e6                # Total Bandwidth per UAV
     ACTUAL_BW_UAV = BW_UAV * 0.9 / BW_RB
+    GRID_SIZE = COVERAGE_XY / 10    # Each grid defined as 10 m block
 
     # User distribution on the target area // NUM_USER/5 users in each of four hotspots
     # Remaining NUM_USER/5 is then uniformly distributed in the target area
@@ -53,12 +54,13 @@ class UAVenv(gym.Env):
         super(UAVenv, self).__init__()
         # Defining action spaces // UAV RB allocation to each user increase each by 1 until remains
         # Five different action for the movement of each UAV
-        self.action_space = spaces.discrete(shape=(1, self.NUM_UAV), dtype=np.integer32)
+        # 1 = Right, 2 = Left, 3 = straight, 4 = back ,5 = Hover
+        self.action_space = spaces.discrete(shape=(1, self.NUM_UAV), dtype=np.int32)
         # Defining Observation spaces // UAV RB to each user
         # Position of the UAV in space // constant height and X and Y pos
-        self.observation_space = spaces.discrete(shape=(2, self.NUM_UAV), dtype=np.integer32)
+        self.observation_space = spaces.discrete(shape=(2, self.NUM_UAV), dtype=np.int32)
         self.u_loc = self.USER_LOC
-        self.state = np.zeros((self.NUM_UAV, 3))
+        self.state = np.zeros((self.NUM_UAV, 3), dtype=np.int32)
         self.coverage_radius = self.UAV_HEIGHT * np.tan(self.THETA / 2)
 
     def step(self, action):
@@ -67,20 +69,37 @@ class UAVenv(gym.Env):
         # Execution of one step within the environment
         # Deal with out of boundaries conditions
         isDone = False
-        quit_in = self.state[:, 2] <= 0
-
+        flag = 0
         # Calculate the distance of every users to the UAV BS and organize as a list
         dist_u_uav = np.array([])
         temp_dist = []
         for i in range(self.NUM_UAV):
-            tem_x = self.state[i][0]
-            tem_y = self.state[i][1]
+            tem_x = self.state[i, 0]
+            tem_y = self.state[i, 1]
             # one step action
-            self.state[i][0]
-            self.state[i][1]
-                # Distance formula ( UAV loc is stored as (X,Y,Z))
-                temp_dist[j] = math.sqrt(
-                    (self.u_loc[j, 0] - self.bs_loc[i, 0]) ** 2 + (self.u_loc[j, 1] - self.bs_loc[i,
+            if action[i] == 1:
+                self.state[0, i] = self.state[0, i] + 1
+            elif action[i] == 2:
+                self.state[0, i] = self.state[0, i] - 1
+            elif action[i] == 3:
+                self.state[1, i] = self.state[1, i] + 1
+            elif action[i] == 4:
+                self.state[i, 2] = self.state[1, i] - 1
+            elif action[i] == 5:
+                pass
+            else:
+                print("Error Action Value")
+
+            # Take boundary condition into account
+            if self.state[0, i] < 0 or self.state[0, i] > self.GRID_SIZE or self.state[1, i] < 0 or self.state[1, i] > \
+                    self.GRID_SIZE:
+                self.state[0, i] = tem_x
+                self.state[1, i] = tem_y
+                flag += 1                    # Later punish in reward
+
+            # Distance formula ( UAV loc is stored as (X,Y,Z))
+            temp_dist[j] = math.sqrt(
+                (self.u_loc[j, 0] - self.bs_loc[i, 0]) ** 2 + (self.u_loc[j, 1] - self.bs_loc[i,
                                                                                                   1]) ** 2)
             dist_u_uav[:, 0:2] = np.insert(dist_u_uav, [np.argmin(temp_dist), i], axis=1)
 

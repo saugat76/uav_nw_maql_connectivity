@@ -12,21 +12,21 @@ class UAVenv(gym.Env):
     metadata = {'render.modes': ['human']}
 
     # Fixed Input Parameters
-    NUM_USER = 100              # Number of ground user
-    NUM_UAV = 5                 # Number of UAV
-    BS_TILT = 0                 # Angle of Antenna Tilt []
-    Fc = 2                      # Operating Frequency 2 GHz
+    NUM_USER = 100  # Number of ground user
+    NUM_UAV = 5  # Number of UAV
+    BS_TILT = 0  # Angle of Antenna Tilt []
+    Fc = 2  # Operating Frequency 2 GHz
     LightSpeed = 3 * (10 ** 8)  # Speed of Light
     WaveLength = LightSpeed / (Fc * (10 ** 9))  # Wavelength of the wave
     COVERAGE_XY = 1000
     UAV_HEIGHT = 25
-    UAV_VELOCITY = 10           # m/sec
+    UAV_VELOCITY = 10  # m/sec
     BS_LOC = np.zeros((NUM_UAV, 3))
-    THETA = 15 * math.pi/180    # in radian
-    BW_RB = 180e3               # Bandwidth for a resource block
-    BW_UAV = 5e6                # Total Bandwidth per UAV
+    THETA = 15 * math.pi / 180  # in radian
+    BW_RB = 180e3  # Bandwidth for a resource block
+    BW_UAV = 5e6  # Total Bandwidth per UAV
     ACTUAL_BW_UAV = BW_UAV * 0.9 / BW_RB
-    GRID_SIZE = COVERAGE_XY / 10    # Each grid defined as 10 m block
+    GRID_SIZE = COVERAGE_XY / 10  # Each grid defined as 10 m block
 
     # User distribution on the target area // NUM_USER/5 users in each of four hotspots
     # Remaining NUM_USER/5 is then uniformly distributed in the target area
@@ -95,12 +95,27 @@ class UAVenv(gym.Env):
                     self.GRID_SIZE:
                 self.state[0, i] = tem_x
                 self.state[1, i] = tem_y
-                flag += 1                    # Later punish in reward
+                flag += 1  # Later punish in reward function
+
+        u_loc = self.USER_LOC
+        # Calculation of the distance value for all UAV and User
+        for k in range(self.NUM_UAV):
+            for l in range(self.NUM_USER):
+                dist_u_uav[k, l] = math.sqrt((u_loc[l, 0] - self.state[0, k]) ** 2 + (u_loc[l, 1] -
+                                                                                      self.state[1, k]) ** 2)
+
+        # User association to the UAV based on the SINR value unless full
+        # First preparation of SINR value for UAV User pair inside the coverage range
+        max_user_num = self.ACTUAL_BW_UAV / self.BW_RB
+        user_assm = np.zeros((self.NUM_UAV, 1), dtype=np.int32)
+
+        for i in range(self.NUM_UAV):
+             if user_assm[i] <= max_user_num:
 
             # Distance formula ( UAV loc is stored as (X,Y,Z))
             temp_dist[j] = math.sqrt(
                 (self.u_loc[j, 0] - self.bs_loc[i, 0]) ** 2 + (self.u_loc[j, 1] - self.bs_loc[i,
-                                                                                                  1]) ** 2)
+                                                                                              1]) ** 2)
             dist_u_uav[:, 0:2] = np.insert(dist_u_uav, [np.argmin(temp_dist), i], axis=1)
 
         # Compare if the closest UAV User distance is within that's BS (UAV) coverage area

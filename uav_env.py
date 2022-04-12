@@ -128,8 +128,13 @@ class UAVenv(gym.Env):
         user_asso = np.zeros((self.NUM_USER,2), dtype="int")
         for j in range(0,5):
             for i in range(self.NUM_UAV):
-                if uav_asso[i,1] <= max_user_num:
-                    uav_asso[i,1] += 1
+                t_idx = np.where(user_uav_list[:,1] == i)
+                for k in range(t_idx):
+                    if uav_asso[i,1] <= max_user_num:
+                        uav_asso[i, 1] += 1
+
+
+
 
 
 

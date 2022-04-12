@@ -22,11 +22,11 @@ class UAVenv(gym.Env):
     UAV_HEIGHT = 25
     UAV_VELOCITY = 10  # m/sec
     BS_LOC = np.zeros((NUM_UAV, 3))
-    THETA = 15 * math.pi / 180  # in radian
-    BW_RB = 180e3  # Bandwidth for a resource block
+    THETA =  60 * math.pi / 180  # in radian    BW_RB = 180e3  # Bandwidth for a resource block
     BW_UAV = 5e6  # Total Bandwidth per UAV
+    BW_RB = 180e3 # Bandwidth of a Resource Block
     ACTUAL_BW_UAV = BW_UAV * 0.9 / BW_RB
-    GRID_SIZE = COVERAGE_XY / 10  # Each grid defined as 10 m block
+    GRID_SIZE = COVERAGE_XY / 10  # Each grid defined as 100m block
 
     # User distribution on the target area // NUM_USER/5 users in each of four hotspots
     # Remaining NUM_USER/5 is then uniformly distributed in the target area
@@ -55,10 +55,10 @@ class UAVenv(gym.Env):
         # Defining action spaces // UAV RB allocation to each user increase each by 1 until remains
         # Five different action for the movement of each UAV
         # 1 = Right, 2 = Left, 3 = straight, 4 = back ,5 = Hover
-        self.action_space = spaces.discrete(shape=(1, self.NUM_UAV), dtype=np.int32)
+        self.action_space = spaces.Discrete(5)
         # Defining Observation spaces // UAV RB to each user
         # Position of the UAV in space // constant height and X and Y pos
-        self.observation_space = spaces.discrete(shape=(2, self.NUM_UAV), dtype=np.int32)
+        self.observation_space = spaces.Discrete(self.NUM_UAV)
         self.u_loc = self.USER_LOC
         self.state = np.zeros((self.NUM_UAV, 3), dtype=np.int32)
         self.coverage_radius = self.UAV_HEIGHT * np.tan(self.THETA / 2)
@@ -103,10 +103,43 @@ class UAVenv(gym.Env):
             for l in range(self.NUM_USER):
                 dist_u_uav[k, l] = math.sqrt((u_loc[l, 0] - self.state[0, k]) ** 2 + (u_loc[l, 1] -
                                                                                       self.state[1, k]) ** 2)
+        max_user_num = self.ACTUAL_BW_UAV / self.BW_RB
+
+        # User association to the UAV based on the distance value.
+        # First do a single sweep by all the Users to request to connect to the closest UAV
+        # After the first sweep is complete the UAV will admit a certain Number of Users based on available resource
+        # In the second sweep the User will request to the UAV that is closest to it and UAV will admit the User if resource available
+        user_uav_list = np.array([])
+        for i in range(self.NUM_USER):
+            temp_ind = np.where(dist_u_uav[i,:] >= self.coverage_radius)
+            # Padding of the rest of the value with 0 to remove dimensional error
+            np.pad(temp_ind, (0, 5-len(temp_ind)%5), 'constant')
+            dist = dist_u_uav[i, temp_ind]
+            # Sort the distance value and arrange the index
+            dist[::-1].sort()
+            temp_ind = np.where(dist_u_uav[i,:] == dist)
+            # Index of the list represents UAV where as value represent distance
+            user_uav_list = np.concatenate([user_uav_list, [i, temp_ind]], axis=0)
+
+        user_uav_row, user_uav_col = user_uav_list.shape
+
+        # Associate the user to UAV
+        uav_asso = np.zeros((self.NUM_UAV,2), dtype="int")
+        user_asso = np.zeros((self.NUM_USER,2), dtype="int")
+        for j in range(0,5):
+            for i in range(self.NUM_UAV):
+                if uav_asso[i,1] <= max_user_num:
+                    uav_asso[i,1] += 1
+
+
+
+
+
+
 
         # User association to the UAV based on the SINR value unless full
         # First preparation of SINR value for UAV User pair inside the coverage range
-        max_user_num = self.ACTUAL_BW_UAV / self.BW_RB
+
         user_assm = np.zeros((self.NUM_UAV, 1), dtype=np.int32)
 
         for i in range(self.NUM_UAV):

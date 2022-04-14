@@ -22,9 +22,9 @@ class UAVenv(gym.Env):
     UAV_HEIGHT = 25
     UAV_VELOCITY = 10  # m/sec
     BS_LOC = np.zeros((NUM_UAV, 3))
-    THETA =  60 * math.pi / 180  # in radian    BW_RB = 180e3  # Bandwidth for a resource block
+    THETA = 60 * math.pi / 180  # in radian    BW_RB = 180e3  # Bandwidth for a resource block
     BW_UAV = 5e6  # Total Bandwidth per UAV
-    BW_RB = 180e3 # Bandwidth of a Resource Block
+    BW_RB = 180e3  # Bandwidth of a Resource Block
     ACTUAL_BW_UAV = BW_UAV * 0.9 / BW_RB
     GRID_SIZE = COVERAGE_XY / 10  # Each grid defined as 100m block
 
@@ -105,85 +105,61 @@ class UAVenv(gym.Env):
                                                                                       self.state[1, k]) ** 2)
         max_user_num = self.ACTUAL_BW_UAV / self.BW_RB
 
-        # User association to the UAV based on the distance value.
-        # First do a single sweep by all the Users to request to connect to the closest UAV
-        # After the first sweep is complete the UAV will admit a certain Number of Users based on available resource
-        # In the second sweep the User will request to the UAV that is closest to it and UAV will admit the User if resource available
-        user_uav_list = np.array([])
-        for i in range(self.NUM_USER):
-            temp_ind = np.where(dist_u_uav[i,:] >= self.coverage_radius)
-            # Padding of the rest of the value with 0 to remove dimensional error
-            np.pad(temp_ind, (0, 5-len(temp_ind)%5), 'constant')
-            dist = dist_u_uav[i, temp_ind]
-            # Sort the distance value and arrange the index
-            dist[::-1].sort()
-            temp_ind = np.where(dist_u_uav[i,:] == dist)
-            # Index of the list represents UAV where as value represent distance
-            user_uav_list = np.concatenate([user_uav_list, [i, temp_ind]], axis=0)
-
-        user_uav_row, user_uav_col = user_uav_list.shape
-
-        # Associate the user to UAV
-        uav_asso = np.zeros((self.NUM_UAV,2), dtype="int")
-        user_asso = np.zeros((self.NUM_USER,2), dtype="int")
-        for j in range(0,5):
-            for i in range(self.NUM_UAV):
-                t_idx = np.where(user_uav_list[:,1] == i)
-                for k in range(t_idx):
-                    if uav_asso[i,1] <= max_user_num:
-                        uav_asso[i, 1] += 1
-
+        # # Final Algorithm User association to the UAV based on the distance value. First do a single sweep by all
+        # the Users to request to connect to the closest UAV After the first sweep is complete the UAV will admit a
+        # certain Number of Users based on available resource In the second sweep the User will request to the UAV
+        # that is closest to it and UAV will admit the User if resource available
 
         # Connection request is a np array matrix that contains UAV Number as row and
-        # User Number Connected to it on Columns
-        connection_request = np.zeros(shape=(self.NUM_UAV, self.NUM_USER))
+        # User Number Connected to it on Columns and is stored in individual UAV to keep track of the
+        # User requesting to connect
+
+        connection_request = np.zeros(shape=(self.NUM_UAV, self.NUM_USER), dtype="int")
         for i in range(self.NUM_UAV):
             for j in range(self.NUM_USER):
                 idx = 0
                 if dist_u_uav[i, j] <= self.coverage_radius:
-                    connection_request[i,idx] = j + 1    # Increasing the user number by 1 to not confuse with empty val
+                    connection_request[i, idx] = j + 1  # Increasing the user number by 1 to not confuse with empty val
                     idx += 1
 
-
+        # Allocating only 70% of max cap in first run
+        cap_user_num = int(0.7 * max_user_num)
         # After all the user has send their connection request,
         # UAV only admits Users closest to and if bandwidth is available
+        user_asso_flag = np.zeros(shape=(self.NUM_USER, 2), dtype="int")
         uav_asso = []
         for i in range(self.NUM_UAV):
             distance_list = {}
-            for j in list(connection_request[i,:]):
+            for j in list(connection_request[i, :]):
                 if j != 0:
-                    distance_list.update({j-1, dist_u_uav[i,j-1]})       # Subtract 1 as the connection request has index of User + 1
+                    # Dict first value is Users_ID and Second value is the distance parameter
+                    # Subtract 1 as the connection request has index of User + 1
+                    distance_list.update({j - 1, dist_u_uav[i, j - 1]})
             dict(sorted(distance_list.items(), key=lambda item: item[1]))
-            if uav_asso[i] <= max_user_num:
-                avai_num = max_user_num
+            # Make list of user sorted based on distance value
+            distance_user_list = list(distance_list)
+            # Remove the users from dict outside coverage area
+            distance_list = {key: val for key, val in distance_list.items() if val > 0}
+            # Select user index with min value of distance
+            min_dist_id = min(distance_list, key=distance_list.get)
+            # The user list are already sorted, to associate flag bit of user upto the index from
+            # min(max_user, max_number_of_user_inside_coverage_area)
+            distance_user_list = distance_user_list[0:min(cap_user_num, min_dist_id)]
+            # If the user have been allocated the resource set the user association flag bit to 1
+            # It can be thought of as the user denoting it self connected
+            user_asso_flag[distance_user_list, 0] = 1
+            # Still need to take multi-UAV coverage to a single UAV
+            uav_asso[i] += min(max_user_num, min_dist_id)
 
-
-
-
-
-
-
-
-
-
-        # User association to the UAV based on the SINR value unless full
-        # First preparation of SINR value for UAV User pair inside the coverage range
-
-        user_assm = np.zeros((self.NUM_UAV, 1), dtype=np.int32)
-
-        for i in range(self.NUM_UAV):
-             if user_assm[i] <= max_user_num:
-
-            # Distance formula ( UAV loc is stored as (X,Y,Z))
-            temp_dist[j] = math.sqrt(
-                (self.u_loc[j, 0] - self.bs_loc[i, 0]) ** 2 + (self.u_loc[j, 1] - self.bs_loc[i,
-                                                                                              1]) ** 2)
-            dist_u_uav[:, 0:2] = np.insert(dist_u_uav, [np.argmin(temp_dist), i], axis=1)
-
-        # Compare if the closest UAV User distance is within that's BS (UAV) coverage area
-        plane_distance = np.sqrt(np.dot(dist_u_uav, dist_u_uav) - np.dot(self.UAV_HEIGHT, self.UAV_HEIGHT))
-        if plane_distance <= self.coverage_radius:
-            pass
+        # For the second sweep, sweep through all users
+        # If the user is not associated choose the closest UAV and check whether it has any available resource
+        # If so allocate the resource and set the User association flag bit of that user to 1
+        for j in range(self.NUM_USER):
+            if user_asso_flag[j, 0] != 0:
+                close_uav_id = np.argmin(dist_u_uav[:, j])
+                if uav_asso[close_uav_id] <= max_user_num:
+                    uav_asso[close_uav_id] += 1
+                    user_asso_flag[j, 0] = 1
 
     def render(self):
         # implement viz

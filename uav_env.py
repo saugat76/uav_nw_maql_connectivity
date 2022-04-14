@@ -61,6 +61,7 @@ class UAVenv(gym.Env):
         self.observation_space = spaces.Discrete(self.NUM_UAV)
         self.u_loc = self.USER_LOC
         self.state = np.zeros((self.NUM_UAV, 3), dtype=np.int32)
+        self.state[:, 2] = self.UAV_HEIGHT
         self.coverage_radius = self.UAV_HEIGHT * np.tan(self.THETA / 2)
 
     def step(self, action):
@@ -105,7 +106,10 @@ class UAVenv(gym.Env):
                                                                                       self.state[1, k]) ** 2)
         max_user_num = self.ACTUAL_BW_UAV / self.BW_RB
 
-        # # Final Algorithm
+        ######################
+        ## Final Algorithm  ##
+        ######################
+
         # User association to the UAV based on the distance value. First do a single sweep by all
         # the Users to request to connect to the closest UAV After the first sweep is complete the UAV will admit a
         # certain Number of Users based on available resource In the second sweep the User will request to the UAV
@@ -162,10 +166,27 @@ class UAVenv(gym.Env):
                     uav_asso[close_uav_id] += 1
                     user_asso_flag[j, 0] = 1
 
-    def render(self):
+        # Need to work on the return parameter of done, info, reward, and obs
+        # Calculation of reward function too
+
+    def render(self, mode='human', close=False):
         # implement viz
-        pass
+        if mode == 'human':
+            position = self.state[:,0:2]
+            plt.scatter(self.u_loc[:, 0], self.u_loc[:, 1])
+            colors = ['red', 'green', 'purple', 'yellow', 'black']
+            for i in range(self.NUM_UAV):
+                plt.scatter(position[i, 0], position[i, 1], color = colors[i])
+            plt.xlabel("X Direction")
+            plt.ylabel("Y Direction")
+            plt.pause(0.001)
+            plt.show()
+        # else:
+            # Dont know this line
+            # print(f"{sum(self.state[:,2] > 0 )})/{self.NUM_UAV} UAVs in the system")
 
     def reset(self):
         # reset out states
-        pass
+        self.state = np.zeros((self.NUM_UAV, 3), dtype=np.int32)
+        self.state[:, 2] = self.UAV_HEIGHT
+        return self.state

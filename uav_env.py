@@ -134,6 +134,30 @@ class UAVenv(gym.Env):
                         uav_asso[i, 1] += 1
 
 
+        # Connection request is a np array matrix that contains UAV Number as row and
+        # User Number Connected to it on Columns
+        connection_request = np.zeros(shape=(self.NUM_UAV, self.NUM_USER))
+        for i in range(self.NUM_UAV):
+            for j in range(self.NUM_USER):
+                idx = 0
+                if dist_u_uav[i, j] <= self.coverage_radius:
+                    connection_request[i,idx] = j + 1    # Increasing the user number by 1 to not confuse with empty val
+                    idx += 1
+
+
+        # After all the user has send their connection request,
+        # UAV only admits Users closest to and if bandwidth is available
+        uav_asso = []
+        for i in range(self.NUM_UAV):
+            distance_list = {}
+            for j in list(connection_request[i,:]):
+                if j != 0:
+                    distance_list.update({j-1, dist_u_uav[i,j-1]})       # Subtract 1 as the connection request has index of User + 1
+            dict(sorted(distance_list.items(), key=lambda item: item[1]))
+            if uav_asso[i] <= max_user_num:
+                avai_num = max_user_num
+
+
 
 
 

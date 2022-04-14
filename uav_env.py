@@ -105,7 +105,8 @@ class UAVenv(gym.Env):
                                                                                       self.state[1, k]) ** 2)
         max_user_num = self.ACTUAL_BW_UAV / self.BW_RB
 
-        # # Final Algorithm User association to the UAV based on the distance value. First do a single sweep by all
+        # # Final Algorithm
+        # User association to the UAV based on the distance value. First do a single sweep by all
         # the Users to request to connect to the closest UAV After the first sweep is complete the UAV will admit a
         # certain Number of Users based on available resource In the second sweep the User will request to the UAV
         # that is closest to it and UAV will admit the User if resource available

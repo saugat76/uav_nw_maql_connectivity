@@ -167,7 +167,14 @@ class UAVenv(gym.Env):
                     user_asso_flag[j, 0] = 1
 
         # Need to work on the return parameter of done, info, reward, and obs
-        # Calculation of reward function too
+        # Calculation of reward function too i.e. total bandwidth provided to the user
+
+        reward = (sum(user_asso_flag)/self.NUM_USER) ** 2
+        if flag != 0:
+            isDone = True
+
+        # Return of obs, reward, done, info
+        return np.copy(self.state).reshape(1, self.NUM_UAV*3), reward, isDone, "empty"
 
     def render(self, mode='human', close=False):
         # implement viz

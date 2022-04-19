@@ -47,8 +47,9 @@ class UAVenv(gym.Env):
     # Saving the user location on a file instead of generating everytime
 
     USER_LOC = np.loadtxt('UserLocation.txt', dtype=np.float32, delimiter=' ')
-    plt.scatter(USER_LOC[:, 0], USER_LOC[:, 1])
-    plt.show()
+
+    # plt.scatter(USER_LOC[:, 0], USER_LOC[:, 1])
+    # plt.show()
 
     def __init__(self):
         super(UAVenv, self).__init__()
@@ -61,6 +62,7 @@ class UAVenv(gym.Env):
         self.observation_space = spaces.Discrete(self.NUM_UAV)
         self.u_loc = self.USER_LOC
         self.state = np.zeros((self.NUM_UAV, 3), dtype=np.int32)
+        self.state[:, 2] = self.UAV_HEIGHT
         self.coverage_radius = self.UAV_HEIGHT * np.tan(self.THETA / 2)
 
     def step(self, action):
@@ -71,41 +73,44 @@ class UAVenv(gym.Env):
         isDone = False
         flag = 0
         # Calculate the distance of every users to the UAV BS and organize as a list
-        dist_u_uav = np.array([])
+        dist_u_uav = np.zeros(shape=(self.NUM_UAV, self.NUM_USER))
         temp_dist = []
         for i in range(self.NUM_UAV):
             tem_x = self.state[i, 0]
             tem_y = self.state[i, 1]
             # one step action
             if action[i] == 1:
-                self.state[0, i] = self.state[0, i] + 1
+                self.state[i, 0] = self.state[i, 0] + 1
             elif action[i] == 2:
-                self.state[0, i] = self.state[0, i] - 1
+                self.state[i, 0] = self.state[i, 0] - 1
             elif action[i] == 3:
-                self.state[1, i] = self.state[1, i] + 1
+                self.state[i, 1] = self.state[i, 1] + 1
             elif action[i] == 4:
-                self.state[i, 2] = self.state[1, i] - 1
+                self.state[i, 1] = self.state[i, 1] - 1
             elif action[i] == 5:
                 pass
             else:
                 print("Error Action Value")
 
             # Take boundary condition into account
-            if self.state[0, i] < 0 or self.state[0, i] > self.GRID_SIZE or self.state[1, i] < 0 or self.state[1, i] > \
+            if self.state[i, 0] < 0 or self.state[i, 0] > self.GRID_SIZE or self.state[i, 1] < 0 or self.state[i, 1] > \
                     self.GRID_SIZE:
-                self.state[0, i] = tem_x
-                self.state[1, i] = tem_y
+                self.state[i, 0] = tem_x
+                self.state[i, 1] = tem_y
                 flag += 1  # Later punish in reward function
 
         u_loc = self.USER_LOC
         # Calculation of the distance value for all UAV and User
         for k in range(self.NUM_UAV):
             for l in range(self.NUM_USER):
-                dist_u_uav[k, l] = math.sqrt((u_loc[l, 0] - self.state[0, k]) ** 2 + (u_loc[l, 1] -
-                                                                                      self.state[1, k]) ** 2)
+                dist_u_uav[k, l] = math.sqrt((u_loc[l, 0] - self.state[k, 0]) ** 2 + (u_loc[l, 1] -
+                                                                                      self.state[k, 1]) ** 2)
         max_user_num = self.ACTUAL_BW_UAV / self.BW_RB
 
-        # # Final Algorithm
+        ######################
+        ## Final Algorithm  ##
+        ######################
+
         # User association to the UAV based on the distance value. First do a single sweep by all
         # the Users to request to connect to the closest UAV After the first sweep is complete the UAV will admit a
         # certain Number of Users based on available resource In the second sweep the User will request to the UAV
@@ -142,15 +147,18 @@ class UAVenv(gym.Env):
             # Remove the users from dict outside coverage area
             distance_list = {key: val for key, val in distance_list.items() if val > 0}
             # Select user index with min value of distance
-            min_dist_id = min(distance_list, key=distance_list.get)
-            # The user list are already sorted, to associate flag bit of user upto the index from
-            # min(max_user, max_number_of_user_inside_coverage_area)
-            distance_user_list = distance_user_list[0:min(cap_user_num, min_dist_id)]
-            # If the user have been allocated the resource set the user association flag bit to 1
-            # It can be thought of as the user denoting it self connected
-            user_asso_flag[distance_user_list, 0] = 1
-            # Still need to take multi-UAV coverage to a single UAV
-            uav_asso[i] += min(max_user_num, min_dist_id)
+            try:
+                min_dist_id = min(distance_list, key=distance_list.get)
+                # The user list are already sorted, to associate flag bit of user upto the index from
+                # min(max_user, max_number_of_user_inside_coverage_area)
+                distance_user_list = distance_user_list[0:min(cap_user_num, min_dist_id)]
+                # If the user have been allocated the resource set the user association flag bit to 1
+                # It can be thought of as the user denoting it self connected
+                user_asso_flag[distance_user_list, 0] = 1
+                # Still need to take multi-UAV coverage to a single UAV
+                uav_asso[i] += min(max_user_num, min_dist_id)
+            except:
+                print("No User in Coverage")
 
         # For the second sweep, sweep through all users
         # If the user is not associated choose the closest UAV and check whether it has any available resource
@@ -162,10 +170,34 @@ class UAVenv(gym.Env):
                     uav_asso[close_uav_id] += 1
                     user_asso_flag[j, 0] = 1
 
-    def render(self):
+        # Need to work on the return parameter of done, info, reward, and obs
+        # Calculation of reward function too i.e. total bandwidth provided to the user
+
+        reward = (sum(user_asso_flag) / self.NUM_USER) ** 2
+        if flag != 0:
+            isDone = True
+
+        # Return of obs, reward, done, info
+        return np.copy(self.state).reshape(1, self.NUM_UAV * 3), reward, isDone, "empty"
+
+    def render(self, mode='human', close=False):
         # implement viz
-        pass
+        if mode == 'human':
+            position = self.state[:, 0:2]
+            plt.scatter(self.u_loc[:, 0], self.u_loc[:, 1])
+            colors = ['red', 'green', 'purple', 'yellow', 'black']
+            for i in range(self.NUM_UAV):
+                plt.scatter(position[i, 0], position[i, 1], color=colors[i])
+            plt.xlabel("X Direction")
+            plt.ylabel("Y Direction")
+            plt.pause(0.001)
+            plt.show()
+        # else:
+        # Dont know this line
+        # print(f"{sum(self.state[:,2] > 0 )})/{self.NUM_UAV} UAVs in the system")
 
     def reset(self):
         # reset out states
-        pass
+        self.state = np.zeros((self.NUM_UAV, 3), dtype=np.int32)
+        self.state[:, 2] = self.UAV_HEIGHT
+        return self.state

@@ -19,13 +19,13 @@ class UAVenv(gym.Env):
     LightSpeed = 3 * (10 ** 8)  # Speed of Light
     WaveLength = LightSpeed / (Fc * (10 ** 9))  # Wavelength of the wave
     COVERAGE_XY = 1000
-    UAV_HEIGHT = 25
+    UAV_HEIGHT = 100
     UAV_VELOCITY = 10  # m/sec
     BS_LOC = np.zeros((NUM_UAV, 3))
-    THETA = 60 * math.pi / 180  # in radian    BW_RB = 180e3  # Bandwidth for a resource block
+    THETA = 150 * math.pi / 180  # in radian    BW_RB = 180e3  # Bandwidth for a resource block
     BW_UAV = 5e6  # Total Bandwidth per UAV
     BW_RB = 180e3  # Bandwidth of a Resource Block
-    ACTUAL_BW_UAV = BW_UAV * 0.9 / BW_RB
+    ACTUAL_BW_UAV = BW_UAV * 0.9
     GRID_SIZE = COVERAGE_XY / 10  # Each grid defined as 100m block
 
     # User distribution on the target area // NUM_USER/5 users in each of four hotspots
@@ -122,43 +122,39 @@ class UAVenv(gym.Env):
 
         connection_request = np.zeros(shape=(self.NUM_UAV, self.NUM_USER), dtype="int")
         for i in range(self.NUM_UAV):
+            idx = 0
             for j in range(self.NUM_USER):
-                idx = 0
                 if dist_u_uav[i, j] <= self.coverage_radius:
                     connection_request[i, idx] = j + 1  # Increasing the user number by 1 to not confuse with empty val
                     idx += 1
-
         # Allocating only 70% of max cap in first run
-        cap_user_num = int(0.7 * max_user_num)
         # After all the user has send their connection request,
         # UAV only admits Users closest to and if bandwidth is available
         user_asso_flag = np.zeros(shape=(self.NUM_USER, 2), dtype="int")
-        uav_asso = []
+        uav_asso = np.zeros(shape=(self.NUM_UAV,1))
         for i in range(self.NUM_UAV):
             distance_list = {}
             for j in list(connection_request[i, :]):
                 if j != 0:
                     # Dict first value is Users_ID and Second value is the distance parameter
                     # Subtract 1 as the connection request has index of User + 1
-                    distance_list.update({j - 1, dist_u_uav[i, j - 1]})
+                    distance_list.update({j - 1: dist_u_uav[i, j - 1]})
             dict(sorted(distance_list.items(), key=lambda item: item[1]))
             # Make list of user sorted based on distance value
             distance_user_list = list(distance_list)
             # Remove the users from dict outside coverage area
             distance_list = {key: val for key, val in distance_list.items() if val > 0}
             # Select user index with min value of distance
-            try:
-                min_dist_id = min(distance_list, key=distance_list.get)
-                # The user list are already sorted, to associate flag bit of user upto the index from
-                # min(max_user, max_number_of_user_inside_coverage_area)
-                distance_user_list = distance_user_list[0:min(cap_user_num, min_dist_id)]
-                # If the user have been allocated the resource set the user association flag bit to 1
-                # It can be thought of as the user denoting it self connected
-                user_asso_flag[distance_user_list, 0] = 1
-                # Still need to take multi-UAV coverage to a single UAV
-                uav_asso[i] += min(max_user_num, min_dist_id)
-            except:
-                print("No User in Coverage")
+            cap_user_num = int(0.7 * max_user_num)
+            min_dist_id = max(distance_list, key=distance_list.get)
+            # The user list are already sorted, to associate flag bit of user upto the index from
+            # min(max_user, max_number_of_user_inside_coverage_area)
+            distance_user_list = distance_user_list[0:min(cap_user_num, min_dist_id)]
+            # If the user have been allocated the resource set the user association flag bit to 1
+            # It can be thought of as the user denoting it self connected
+            user_asso_flag[distance_user_list, 0] = 1
+            # Still need to take multi-UAV coverage to a single UAV
+            uav_asso[i] += min(max_user_num, min_dist_id)
 
         # For the second sweep, sweep through all users
         # If the user is not associated choose the closest UAV and check whether it has any available resource
@@ -173,7 +169,7 @@ class UAVenv(gym.Env):
         # Need to work on the return parameter of done, info, reward, and obs
         # Calculation of reward function too i.e. total bandwidth provided to the user
 
-        reward = (sum(user_asso_flag) / self.NUM_USER) ** 2
+        reward = (sum(sum(user_asso_flag)) / self.NUM_USER) ** 2
         if flag != 0:
             isDone = True
 

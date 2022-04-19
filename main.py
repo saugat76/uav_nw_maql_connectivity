@@ -1,3 +1,4 @@
-import uav_env
+from uav_env import UAVenv
 
+new_env = UAVenv()
 

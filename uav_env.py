@@ -26,7 +26,7 @@ class UAVenv(gym.Env):
     BW_UAV = 5e6  # Total Bandwidth per UAV
     BW_RB = 180e3  # Bandwidth of a Resource Block
     ACTUAL_BW_UAV = BW_UAV * 0.9
-    GRID_SIZE = COVERAGE_XY / 10  # Each grid defined as 100m block
+    GRID_SIZE = COVERAGE_XY / 100  # Each grid defined as 100m block
 
     # User distribution on the target area // NUM_USER/5 users in each of four hotspots
     # Remaining NUM_USER/5 is then uniformly distributed in the target area
@@ -64,7 +64,7 @@ class UAVenv(gym.Env):
         self.state = np.zeros((self.NUM_UAV, 3), dtype=np.int32)
         # set the states to the hotspots and one at the centre for faster convergence
         # further complexity by choosing random value of state
-        self.state[:, 0:2] = [[200, 200], [800, 800], [300, 800], [800, 300], [500, 500]]
+        self.state[:, 0:2] = [[2, 2], [8, 8], [3, 8], [8, 3], [5, 5]]
         self.state[:, 2] = self.UAV_HEIGHT
         self.coverage_radius = self.UAV_HEIGHT * np.tan(self.THETA / 2)
 
@@ -170,7 +170,7 @@ class UAVenv(gym.Env):
                     if uav_asso[close_id] <= max_user_num:
                         uav_asso[close_id] += 1
                         user_asso_flag[j, 0] = 1
-                        pass
+                        break
 
         # Need to work on the return parameter of done, info, reward, and obs
         # Calculation of reward function too i.e. total bandwidth provided to the user
@@ -202,6 +202,6 @@ class UAVenv(gym.Env):
         # reset out states
         # set the states to the hotspots and one at the centre for faster convergence
         # further complexity by choosing random value of state
-        self.state[:, 0:1] = [[200, 200], [800, 800], [300, 800], [800, 300], [500, 500]]
+        self.state[:, 0:1] = [[2, 2], [8, 8], [3, 8], [8, 3], [5, 5]]
         self.state[:, 2] = self.UAV_HEIGHT
         return self.state

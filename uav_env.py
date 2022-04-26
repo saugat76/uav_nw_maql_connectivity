@@ -62,6 +62,9 @@ class UAVenv(gym.Env):
         self.observation_space = spaces.Discrete(self.NUM_UAV)
         self.u_loc = self.USER_LOC
         self.state = np.zeros((self.NUM_UAV, 3), dtype=np.int32)
+        # set the states to the hotspots and one at the centre for faster convergence
+        # further complexity by choosing random value of state
+        self.state[:, 0:2] = [[200, 200], [800, 800], [300, 800], [800, 300], [500, 500]]
         self.state[:, 2] = self.UAV_HEIGHT
         self.coverage_radius = self.UAV_HEIGHT * np.tan(self.THETA / 2)
 
@@ -164,8 +167,8 @@ class UAVenv(gym.Env):
                 close_uav_id = dist_u_uav[:, j]
                 close_uav_id = [i[0] for i in sorted(enumerate(close_uav_id), key=lambda x:x[1])]
                 for close_id in close_uav_id:
-                    if uav_asso[close_uav_id] <= max_user_num:
-                        uav_asso[close_uav_id] += 1
+                    if uav_asso[close_id] <= max_user_num:
+                        uav_asso[close_id] += 1
                         user_asso_flag[j, 0] = 1
                         pass
 
@@ -197,6 +200,8 @@ class UAVenv(gym.Env):
 
     def reset(self):
         # reset out states
-        self.state = np.zeros((self.NUM_UAV, 3), dtype=np.int32)
+        # set the states to the hotspots and one at the centre for faster convergence
+        # further complexity by choosing random value of state
+        self.state[:, 0:1] = [[200, 200], [800, 800], [300, 800], [800, 300], [500, 500]]
         self.state[:, 2] = self.UAV_HEIGHT
         return self.state

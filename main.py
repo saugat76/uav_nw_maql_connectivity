@@ -7,3 +7,5 @@ new_env = UAVenv()
 for i in range(100):
     print(new_env.step([random.randint(1,5),random.randint(1,5),random.randint(1,5),random.randint(1,5),random.randint(1,5)]))
 
+
+

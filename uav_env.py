@@ -131,7 +131,7 @@ class UAVenv(gym.Env):
         # After all the user has send their connection request,
         # UAV only admits Users closest to and if bandwidth is available
         user_asso_flag = np.zeros(shape=(self.NUM_USER, 2), dtype="int")
-        uav_asso = np.zeros(shape=(self.NUM_UAV,1))
+        uav_asso = np.zeros(shape=(self.NUM_UAV, 1))
         for i in range(self.NUM_UAV):
             distance_list = {}
             for j in list(connection_request[i, :]):
@@ -146,30 +146,33 @@ class UAVenv(gym.Env):
             distance_list = {key: val for key, val in distance_list.items() if val > 0}
             # Select user index with min value of distance
             cap_user_num = int(0.7 * max_user_num)
-            min_dist_id = max(distance_list, key=distance_list.get)
+            max_dist_id = max(distance_list, key=distance_list.get)
             # The user list are already sorted, to associate flag bit of user upto the index from
             # min(max_user, max_number_of_user_inside_coverage_area)
-            distance_user_list = distance_user_list[0:min(cap_user_num, min_dist_id)]
+            distance_user_list = distance_user_list[0:min(cap_user_num, max_dist_id)]
             # If the user have been allocated the resource set the user association flag bit to 1
             # It can be thought of as the user denoting it self connected
             user_asso_flag[distance_user_list, 0] = 1
             # Still need to take multi-UAV coverage to a single UAV
-            uav_asso[i] += min(max_user_num, min_dist_id)
+            uav_asso[i] += min(max_user_num, max_dist_id)
 
         # For the second sweep, sweep through all users
         # If the user is not associated choose the closest UAV and check whether it has any available resource
         # If so allocate the resource and set the User association flag bit of that user to 1
         for j in range(self.NUM_USER):
             if user_asso_flag[j, 0] != 0:
-                close_uav_id = np.argmin(dist_u_uav[:, j])
-                if uav_asso[close_uav_id] <= max_user_num:
-                    uav_asso[close_uav_id] += 1
-                    user_asso_flag[j, 0] = 1
+                close_uav_id = dist_u_uav[:, j]
+                close_uav_id = [i[0] for i in sorted(enumerate(close_uav_id), key=lambda x:x[1])]
+                for close_id in close_uav_id:
+                    if uav_asso[close_uav_id] <= max_user_num:
+                        uav_asso[close_uav_id] += 1
+                        user_asso_flag[j, 0] = 1
+                        pass
 
         # Need to work on the return parameter of done, info, reward, and obs
         # Calculation of reward function too i.e. total bandwidth provided to the user
 
-        reward = (sum(sum(user_asso_flag)) / self.NUM_USER) ** 2
+        reward = (sum(sum(user_asso_flag)))
         if flag != 0:
             isDone = True
 

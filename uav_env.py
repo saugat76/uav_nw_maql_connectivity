@@ -202,6 +202,6 @@ class UAVenv(gym.Env):
         # reset out states
         # set the states to the hotspots and one at the centre for faster convergence
         # further complexity by choosing random value of state
-        self.state[:, 0:1] = [[2, 2], [8, 8], [3, 8], [8, 3], [5, 5]]
+        self.state[:, 0:2] = [[2, 2], [8, 8], [3, 8], [8, 3], [5, 5]]
         self.state[:, 2] = self.UAV_HEIGHT
         return self.state

@@ -5,6 +5,7 @@ import math
 import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
+import random
 
 
 class UAVenv(gym.Env):
@@ -19,28 +20,29 @@ class UAVenv(gym.Env):
     LightSpeed = 3 * (10 ** 8)  # Speed of Light
     WaveLength = LightSpeed / (Fc * (10 ** 9))  # Wavelength of the wave
     COVERAGE_XY = 1000
-    UAV_HEIGHT = 100
+    UAV_HEIGHT = 30
     UAV_VELOCITY = 10  # m/sec
     BS_LOC = np.zeros((NUM_UAV, 3))
     THETA = 150 * math.pi / 180  # in radian    BW_RB = 180e3  # Bandwidth for a resource block
     BW_UAV = 5e6  # Total Bandwidth per UAV
     BW_RB = 180e3  # Bandwidth of a Resource Block
     ACTUAL_BW_UAV = BW_UAV * 0.9
-    GRID_SIZE = COVERAGE_XY / 100  # Each grid defined as 100m block
+    GRID_SIZE = COVERAGE_XY / 10  # Each grid defined as 100m block
 
     # User distribution on the target area // NUM_USER/5 users in each of four hotspots
     # Remaining NUM_USER/5 is then uniformly distributed in the target area
 
-    # HOTSPOTS = np.array([[200, 200], [800, 800], [300, 800], [800, 300]])
+    # HOTSPOTS = np.array(
+    #     [[20, 20], [80, 80], [30, 80], [80, 30]])  # Position setup in grid size rather than actual distance
     # USER_DIS = int(NUM_USER / NUM_UAV)
-    # USER_LOC = np.zeros((NUM_USER-USER_DIS, 2))
+    # USER_LOC = np.zeros((NUM_USER - USER_DIS, 2))
     #
     # for i in range(len(HOTSPOTS)):
     #     for j in range(USER_DIS):
-    #         temp_loc_1 = random.uniform(HOTSPOTS[i, 0]-100, HOTSPOTS[i, 0]+100)
-    #         temp_loc_2 = random.uniform(HOTSPOTS[i, 1]-100, HOTSPOTS[i, 1]+100)
-    #         USER_LOC[i*USER_DIS+j, :] = [temp_loc_1, temp_loc_2]
-    # temp_loc = np.random.uniform(low=0.0, high=COVERAGE_XY, size=(USER_DIS, 2))
+    #         temp_loc_1 = random.uniform(HOTSPOTS[i, 0] - 1, HOTSPOTS[i, 0] + 1)
+    #         temp_loc_2 = random.uniform(HOTSPOTS[i, 1] - 1, HOTSPOTS[i, 1] + 1)
+    #         USER_LOC[i * USER_DIS + j, :] = [temp_loc_1, temp_loc_2]
+    # temp_loc = np.random.uniform(low=0, high=COVERAGE_XY, size=(USER_DIS, 2))
     # USER_LOC = np.concatenate((USER_LOC, temp_loc))
     # np.savetxt('UserLocation.txt', USER_LOC, fmt='%.3e', delimiter=' ', newline='\n')
 
@@ -64,7 +66,7 @@ class UAVenv(gym.Env):
         self.state = np.zeros((self.NUM_UAV, 3), dtype=np.int32)
         # set the states to the hotspots and one at the centre for faster convergence
         # further complexity by choosing random value of state
-        self.state[:, 0:2] = [[2, 2], [8, 8], [3, 8], [8, 3], [5, 5]]
+        self.state[:, 0:2] = [[20, 20], [80, 80], [30, 80], [80, 30], [50, 50]]
         self.state[:, 2] = self.UAV_HEIGHT
         self.coverage_radius = self.UAV_HEIGHT * np.tan(self.THETA / 2)
 
@@ -163,19 +165,19 @@ class UAVenv(gym.Env):
         # If the user is not associated choose the closest UAV and check whether it has any available resource
         # If so allocate the resource and set the User association flag bit of that user to 1
         for j in range(self.NUM_USER):
-            if user_asso_flag[j, 0] != 0:
+            if user_asso_flag[j, 0] == 0:
                 close_uav_id = dist_u_uav[:, j]
-                close_uav_id = [i[0] for i in sorted(enumerate(close_uav_id), key=lambda x:x[1])]
+                close_uav_id = [i[0] for i in sorted(enumerate(close_uav_id), key=lambda x: x[1])]
                 for close_id in close_uav_id:
                     if uav_asso[close_id] <= max_user_num:
                         uav_asso[close_id] += 1
                         user_asso_flag[j, 0] = 1
                         break
-
+        # print(user_asso_flag)
         # Need to work on the return parameter of done, info, reward, and obs
         # Calculation of reward function too i.e. total bandwidth provided to the user
 
-        reward = (sum(sum(user_asso_flag)))
+        reward = sum(sum(user_asso_flag))
         if flag != 0:
             isDone = True
 
@@ -202,6 +204,25 @@ class UAVenv(gym.Env):
         # reset out states
         # set the states to the hotspots and one at the centre for faster convergence
         # further complexity by choosing random value of state
-        self.state[:, 0:2] = [[2, 2], [8, 8], [3, 8], [8, 3], [5, 5]]
+        self.state[:, 0:2] = [[20, 20], [80, 80], [30, 80], [80, 30], [50, 50]]
         self.state[:, 2] = self.UAV_HEIGHT
         return self.state
+
+    def get_state(self):
+        state_loc = np.zeros((self.NUM_UAV, 2))
+        for k in range(self.NUM_UAV):
+            state_loc[k, 0] = self.state[k, 0]
+            state_loc[k, 1] = self.state[k, 1]
+        return state_loc
+
+    def get_full_obs(self):
+        obs = np.ones((self.GRID_SIZE, self.GRID_SIZE, 3))
+        for i in range(self.NUM_USER):
+            obs[self.USER_LOC[i, 0], self.USER_LOC[i, 1], 0] = 1
+            obs[self.USER_LOC[i, 0], self.USER_LOC[i, 1], 1] = 0
+            obs[self.USER_LOC[i, 0], self.USER_LOC[i, 1], 2] = 0
+        for i in range(self.NUM_UAV):
+            obs[self.state[i, 0], self.state[i, 1], 0] = 0
+            obs[self.state[i, 0], self.state[i, 1], 1] = 0
+            obs[self.state[i, 0], self.state[i, 1], 2] = 1
+        return obs

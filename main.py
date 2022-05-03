@@ -135,7 +135,7 @@ def Q_Learning(env, num_episode, num_epoch, discount_factor=0.9, alpha=0.5, epsi
             #     ax1.imshow(u_env.get_full_obs())
             #     plt.pause(0.5)
             #     plt.draw()
-    return Q, episode_rewards
+    return Q, episode_reward
 
 
 # Defining System Parameters

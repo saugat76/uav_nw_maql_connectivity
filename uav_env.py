@@ -20,23 +20,24 @@ class UAVenv(gym.Env):
     LightSpeed = 3 * (10 ** 8)  # Speed of Light
     WaveLength = LightSpeed / (Fc * (10 ** 9))  # Wavelength of the wave
     COVERAGE_XY = 1000
-    UAV_HEIGHT = 30
+    UAV_HEIGHT = 25
     UAV_VELOCITY = 10  # m/sec
     BS_LOC = np.zeros((NUM_UAV, 3))
-    THETA = 150 * math.pi / 180  # in radian    BW_RB = 180e3  # Bandwidth for a resource block
+    THETA = 170 * math.pi / 180  # in radian    BW_RB = 180e3  # Bandwidth for a resource block
     BW_UAV = 5e6  # Total Bandwidth per UAV
     BW_RB = 180e3  # Bandwidth of a Resource Block
     ACTUAL_BW_UAV = BW_UAV * 0.9
-    GRID_SIZE = COVERAGE_XY / 10  # Each grid defined as 100m block
+    grid_space = 100
+    GRID_SIZE = COVERAGE_XY / grid_space  # Each grid defined as 100m block
 
     # User distribution on the target area // NUM_USER/5 users in each of four hotspots
     # Remaining NUM_USER/5 is then uniformly distributed in the target area
 
     # HOTSPOTS = np.array(
-    #     [[20, 20], [80, 80], [30, 80], [80, 30]])  # Position setup in grid size rather than actual distance
+    #     [[200, 200], [800, 800], [300, 800], [800, 300]])  # Position setup in grid size rather than actual distance
     # USER_DIS = int(NUM_USER / NUM_UAV)
     # USER_LOC = np.zeros((NUM_USER - USER_DIS, 2))
-    #
+    
     # for i in range(len(HOTSPOTS)):
     #     for j in range(USER_DIS):
     #         temp_loc_1 = random.uniform(HOTSPOTS[i, 0] - 1, HOTSPOTS[i, 0] + 1)
@@ -66,7 +67,7 @@ class UAVenv(gym.Env):
         self.state = np.zeros((self.NUM_UAV, 3), dtype=np.int32)
         # set the states to the hotspots and one at the centre for faster convergence
         # further complexity by choosing random value of state
-        self.state[:, 0:2] = [[20, 20], [80, 80], [30, 80], [80, 30], [50, 50]]
+        self.state[:, 0:2] = [[2, 2], [2, 2], [2, 3], [3, 4], [4, 4]]
         self.state[:, 2] = self.UAV_HEIGHT
         self.coverage_radius = self.UAV_HEIGHT * np.tan(self.THETA / 2)
 
@@ -108,8 +109,8 @@ class UAVenv(gym.Env):
         # Calculation of the distance value for all UAV and User
         for k in range(self.NUM_UAV):
             for l in range(self.NUM_USER):
-                dist_u_uav[k, l] = math.sqrt((u_loc[l, 0] - self.state[k, 0]) ** 2 + (u_loc[l, 1] -
-                                                                                      self.state[k, 1]) ** 2)
+                dist_u_uav[k, l] = math.sqrt((u_loc[l, 0] - (self.state[k, 0] * self.grid_space)) ** 2 + (u_loc[l, 1] -
+                                                                                      (self.state[k, 1] * self.grid_space)) ** 2)
         max_user_num = self.ACTUAL_BW_UAV / self.BW_RB
 
         ######################
@@ -204,7 +205,7 @@ class UAVenv(gym.Env):
         # reset out states
         # set the states to the hotspots and one at the centre for faster convergence
         # further complexity by choosing random value of state
-        self.state[:, 0:2] = [[20, 20], [80, 80], [30, 80], [80, 30], [50, 50]]
+        self.state[:, 0:2] = [[2, 2], [2, 2], [2, 3], [3, 4], [4, 4]]
         self.state[:, 2] = self.UAV_HEIGHT
         return self.state
 

@@ -1,3 +1,4 @@
+from unicodedata import ucd_3_2_0
 import gym
 from gym import spaces
 import numpy as np
@@ -7,6 +8,14 @@ import matplotlib
 import matplotlib.pyplot as plt
 import random
 
+class Drones(object):
+    def __init__(self, pos, view_range):
+        self.pos = pos
+        self.view_range = view_range
+
+class Human(object):
+    def __init__(self, pos):
+        self.pos = pos
 
 class UAVenv(gym.Env):
     """Custom Environment that follows gym interface """
@@ -28,28 +37,28 @@ class UAVenv(gym.Env):
     BW_RB = 180e3  # Bandwidth of a Resource Block
     ACTUAL_BW_UAV = BW_UAV * 0.9
     grid_space = 100
-    GRID_SIZE = COVERAGE_XY / grid_space  # Each grid defined as 100m block
+    GRID_SIZE = int(COVERAGE_XY / grid_space)  # Each grid defined as 100m block
 
     # User distribution on the target area // NUM_USER/5 users in each of four hotspots
     # Remaining NUM_USER/5 is then uniformly distributed in the target area
 
-    # HOTSPOTS = np.array(
-    #     [[200, 200], [800, 800], [300, 800], [800, 300]])  # Position setup in grid size rather than actual distance
-    # USER_DIS = int(NUM_USER / NUM_UAV)
-    # USER_LOC = np.zeros((NUM_USER - USER_DIS, 2))
+    HOTSPOTS = np.array(
+        [[200, 200], [800, 800], [300, 800], [800, 300]])  # Position setup in grid size rather than actual distance
+    USER_DIS = int(NUM_USER / NUM_UAV)
+    USER_LOC = np.zeros((NUM_USER - USER_DIS, 2))
     
-    # for i in range(len(HOTSPOTS)):
-    #     for j in range(USER_DIS):
-    #         temp_loc_1 = random.uniform(HOTSPOTS[i, 0] - 1, HOTSPOTS[i, 0] + 1)
-    #         temp_loc_2 = random.uniform(HOTSPOTS[i, 1] - 1, HOTSPOTS[i, 1] + 1)
-    #         USER_LOC[i * USER_DIS + j, :] = [temp_loc_1, temp_loc_2]
-    # temp_loc = np.random.uniform(low=0, high=COVERAGE_XY, size=(USER_DIS, 2))
-    # USER_LOC = np.concatenate((USER_LOC, temp_loc))
-    # np.savetxt('UserLocation.txt', USER_LOC, fmt='%.3e', delimiter=' ', newline='\n')
+    for i in range(len(HOTSPOTS)):
+        for j in range(USER_DIS):
+            temp_loc_1 = random.uniform(HOTSPOTS[i, 0] - 100, HOTSPOTS[i, 0] + 100)
+            temp_loc_2 = random.uniform(HOTSPOTS[i, 1] - 100, HOTSPOTS[i, 1] + 100)
+            USER_LOC[i * USER_DIS + j, :] = [temp_loc_1, temp_loc_2]
+    temp_loc = np.random.uniform(low=0, high=COVERAGE_XY, size=(USER_DIS, 2))
+    USER_LOC = np.concatenate((USER_LOC, temp_loc))
+    np.savetxt('UserLocation.txt', USER_LOC, fmt='%.3e', delimiter=' ', newline='\n')
 
     # Saving the user location on a file instead of generating everytime
 
-    USER_LOC = np.loadtxt('UserLocation.txt', dtype=np.float32, delimiter=' ')
+    USER_LOC = np.loadtxt('UserLocation.txt', dtype=np.int32, delimiter=' ')
 
     # plt.scatter(USER_LOC[:, 0], USER_LOC[:, 1])
     # plt.show()
@@ -67,7 +76,7 @@ class UAVenv(gym.Env):
         self.state = np.zeros((self.NUM_UAV, 3), dtype=np.int32)
         # set the states to the hotspots and one at the centre for faster convergence
         # further complexity by choosing random value of state
-        self.state[:, 0:2] = [[2, 2], [2, 2], [2, 3], [3, 4], [4, 4]]
+        self.state[:, 0:2] = [[2, 2], [5, 5], [2, 3], [3, 4], [4, 4]]
         self.state[:, 2] = self.UAV_HEIGHT
         self.coverage_radius = self.UAV_HEIGHT * np.tan(self.THETA / 2)
 
@@ -197,15 +206,13 @@ class UAVenv(gym.Env):
             plt.ylabel("Y Direction")
             plt.pause(0.001)
             plt.show()
-        # else:
-        # Dont know this line
-        # print(f"{sum(self.state[:,2] > 0 )})/{self.NUM_UAV} UAVs in the system")
+
 
     def reset(self):
         # reset out states
         # set the states to the hotspots and one at the centre for faster convergence
         # further complexity by choosing random value of state
-        self.state[:, 0:2] = [[2, 2], [2, 2], [2, 3], [3, 4], [4, 4]]
+        self.state[:, 0:2] = [[2, 2], [5, 5], [2, 3], [3, 4], [4, 4]]
         self.state[:, 2] = self.UAV_HEIGHT
         return self.state
 
@@ -217,13 +224,75 @@ class UAVenv(gym.Env):
         return state_loc
 
     def get_full_obs(self):
-        obs = np.ones((self.GRID_SIZE, self.GRID_SIZE, 3))
+        obs = np.ones((self.COVERAGE_XY+1, self.COVERAGE_XY+1, 3), dtype=float)
         for i in range(self.NUM_USER):
             obs[self.USER_LOC[i, 0], self.USER_LOC[i, 1], 0] = 1
             obs[self.USER_LOC[i, 0], self.USER_LOC[i, 1], 1] = 0
             obs[self.USER_LOC[i, 0], self.USER_LOC[i, 1], 2] = 0
         for i in range(self.NUM_UAV):
-            obs[self.state[i, 0], self.state[i, 1], 0] = 0
-            obs[self.state[i, 0], self.state[i, 1], 1] = 0
-            obs[self.state[i, 0], self.state[i, 1], 2] = 1
+            obs[self.state[i, 0] * self.grid_space, self.state[i, 1] * self.grid_space, 0] = 0
+            obs[self.state[i, 0] * self.grid_space, self.state[i, 1] * self.grid_space, 1] = 0
+            obs[self.state[i, 0] * self.grid_space, self.state[i, 1] * self.grid_space, 2] = 1
+        return obs
+    
+    def get_drone_obs(self, state):
+        obs_size = int(2 * self.coverage_radius - 1)
+        obs = np.ones((obs_size, obs_size, 3))
+        for i in range(obs_size):
+            for j in range(obs_size):
+                x = i + state[0] - self.coverage_radius + 1
+                y = j + state[1] - self.coverage_radius + 1
+                print(x)
+                print(y)
+
+                for k in range(self.NUM_USER):
+                    
+                    print(self.u_loc[k, 0])
+                    if self.u_loc[k, 0] == x and self.u_loc[k, 1] == y:
+                        obs[i, j, 0] = 1
+                        obs[i, j, 1] = 0
+                        obs[i, j, 2] = 0
+
+                    if x < 0 or x > (self.GRID_SIZE  - 1)*self.grid_space or y < 0 or y > (self.GRID_SIZE - 1)*self.grid_space:
+                        obs[i, j, 0] = 0.5
+                        obs[i, j, 1] = 0.5
+                        obs[i, j, 2] = 0.5
+
+                    if (self.coverage_radius - 1 - i) * (self.coverage_radius - 1 - i) + (
+                            self.coverage_radius - 1 - j) * (
+                            self.coverage_radius - 1 - i) > self.coverage_radius * self.coverage_radius:
+                        obs[i, j, 0] = 0.5
+                        obs[i, j, 1] = 0.5
+                        obs[i, j, 2] = 0.5
+
+                    return obs
+
+    def get_joint_obs(self):
+        obs = np.ones((self.GRID_SIZE, self.GRID_SIZE, 3))
+        for i in range(self.GRID_SIZE):
+            for j in range(self.GRID_SIZE):
+                obs[i, j, 0] = 0.5
+                obs[i, j, 1] = 0.5
+                obs[i, j, 2] = 0.5
+
+        for k in range(self.NUM_UAV):
+            temp = self.get_drone_obs(self.state[k,:])
+            size = temp.shape[0]
+            for i in range(size):
+                for j in range(size):
+                    x = i + self.state[k, 0] - self.coverage_radius + 1
+                    y = j + self.state[k, 1] - self.coverage_radius + 1
+                    if_obs = True
+                    if temp[i, j, 0] == 0.5 and temp[i, j, 1] == 0.5 and temp[i, j, 2] == 0.5:
+                        if_obs = False
+                    if if_obs == True:
+                        obs[x, y, 0] = temp[i, j, 0]
+                        obs[x, y, 1] = temp[i, j, 1]
+                        obs[x, y, 2] = temp[i, j, 2]
+
+        for k in range(self.NUM_UAV):
+            obs[self.state[k, 0], self.state[k, 1], 0] = 0
+            obs[self.state[k, 0], self.state[k, 1], 1] = 0
+            obs[self.state[k, 0]. self.state[k, 1], 2] = 1
+
         return obs

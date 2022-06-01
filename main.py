@@ -1,4 +1,5 @@
 import random
+from re import U
 import gym
 import numpy as np
 import pandas as pd
@@ -60,22 +61,25 @@ def Q_Learning(env, num_episode, num_epoch, discount_factor, alpha, epsilon):
 
             states = next_state
 
-            # if i_episode % 10 == 0:
-            #     # Reset of the environment
-            #     u_env.reset()
-            #     # Get the states
-            #     states = u_env.get_state()
-            #     for t in range(100):
-            #         drone_act_list = []
-            #         for k in range(NUM_UAV):
-            #             action = np.argmax(Q[k][int(states[k, 0] * GRID_SIZE + states[k, 1])])
-            #             drone_act_list.append(action)
-            #         temp_data = u_env.step(drone_act_list)
-            #         states = u_env.get_state()
-            #
-            #     ax1.imshow(u_env.get_full_obs())
-            #     plt.pause(0.5)
-            #     plt.draw()
+            if i_episode % 10 == 0:
+                # Reset of the environment
+                u_env.reset()
+                # Get the states
+                states = u_env.get_state()
+                for t in range(100):
+                    drone_act_list = []
+                    for k in range(NUM_UAV):
+                        best_next_action = np.argmax(Q[k][int(next_state[k, 0] * GRID_SIZE + next_state[k, 1])])
+                        drone_act_list.append(action)
+                    temp_data = u_env.step(drone_act_list)
+                    states = u_env.get_state()
+                # Plot the images
+                print(u_env.get_full_obs())
+                ax1.imshow(u_env.get_full_obs())
+                # ax2.imshow(u_env.get_joint_obs())
+                plt.pause(0.5)
+                plt.draw()
+
     return Q, episode_reward
 
 
@@ -85,7 +89,7 @@ GRID_SIZE = u_env.GRID_SIZE
 NUM_UAV = u_env.NUM_UAV
 NUM_USER = u_env.NUM_USER
 num_episode = 100
-num_epochs = 5000
+num_epochs = 500
 discount_factor = 0.9
 alpha = 0.025
 epsilon = 0.1

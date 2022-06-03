@@ -8,15 +8,6 @@ import matplotlib
 import matplotlib.pyplot as plt
 import random
 
-class Drones(object):
-    def __init__(self, pos, view_range):
-        self.pos = pos
-        self.view_range = view_range
-
-class Human(object):
-    def __init__(self, pos):
-        self.pos = pos
-
 class UAVenv(gym.Env):
     """Custom Environment that follows gym interface """
     metadata = {'render.modes': ['human']}
@@ -28,15 +19,15 @@ class UAVenv(gym.Env):
     Fc = 2  # Operating Frequency 2 GHz
     LightSpeed = 3 * (10 ** 8)  # Speed of Light
     WaveLength = LightSpeed / (Fc * (10 ** 9))  # Wavelength of the wave
-    COVERAGE_XY = 1000
+    COVERAGE_XY = 100
     UAV_HEIGHT = 25
     UAV_VELOCITY = 10  # m/sec
     BS_LOC = np.zeros((NUM_UAV, 3))
-    THETA = 170 * math.pi / 180  # in radian    BW_RB = 180e3  # Bandwidth for a resource block
+    THETA = 60 * math.pi / 180  # in radian    BW_RB = 180e3  # Bandwidth for a resource block
     BW_UAV = 5e6  # Total Bandwidth per UAV
     BW_RB = 180e3  # Bandwidth of a Resource Block
     ACTUAL_BW_UAV = BW_UAV * 0.9
-    grid_space = 100
+    grid_space = 1
     GRID_SIZE = int(COVERAGE_XY / grid_space)  # Each grid defined as 100m block
 
     # User distribution on the target area // NUM_USER/5 users in each of four hotspots
@@ -76,7 +67,7 @@ class UAVenv(gym.Env):
         self.state = np.zeros((self.NUM_UAV, 3), dtype=np.int32)
         # set the states to the hotspots and one at the centre for faster convergence
         # further complexity by choosing random value of state
-        self.state[:, 0:2] = [[2, 2], [5, 5], [2, 3], [3, 4], [4, 4]]
+        self.state[:, 0:2] = [[2, 2], [5, 5], [2, 8], [10, 8], [4, 4]]
         self.state[:, 2] = self.UAV_HEIGHT
         self.coverage_radius = self.UAV_HEIGHT * np.tan(self.THETA / 2)
 
@@ -212,7 +203,7 @@ class UAVenv(gym.Env):
         # reset out states
         # set the states to the hotspots and one at the centre for faster convergence
         # further complexity by choosing random value of state
-        self.state[:, 0:2] = [[2, 2], [5, 5], [2, 3], [3, 4], [4, 4]]
+        self.state[:, 0:2] = [[2, 2], [5, 5], [2, 8], [10, 8], [4, 4]]
         self.state[:, 2] = self.UAV_HEIGHT
         return self.state
 
@@ -242,12 +233,9 @@ class UAVenv(gym.Env):
             for j in range(obs_size):
                 x = i + state[0] - self.coverage_radius + 1
                 y = j + state[1] - self.coverage_radius + 1
-                print(x)
-                print(y)
 
                 for k in range(self.NUM_USER):
                     
-                    print(self.u_loc[k, 0])
                     if self.u_loc[k, 0] == x and self.u_loc[k, 1] == y:
                         obs[i, j, 0] = 1
                         obs[i, j, 1] = 0

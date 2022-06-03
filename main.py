@@ -74,7 +74,6 @@ def Q_Learning(env, num_episode, num_epoch, discount_factor, alpha, epsilon):
                     temp_data = u_env.step(drone_act_list)
                     states = u_env.get_state()
                 # Plot the images
-                print(u_env.get_full_obs())
                 ax1.imshow(u_env.get_full_obs())
                 # ax2.imshow(u_env.get_joint_obs())
                 plt.pause(0.5)

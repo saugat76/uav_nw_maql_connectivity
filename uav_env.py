@@ -3,6 +3,7 @@
 ## Environment Setup of for UAV  ##
 ###################################
 
+from turtle import pos
 import gym
 from gym import spaces
 import numpy as np
@@ -30,7 +31,7 @@ class UAVenv(gym.Env):
     COVERAGE_XY = 1000
     UAV_HEIGHT = 300
     BS_LOC = np.zeros((NUM_UAV, 3))
-    THETA = 35 * math.pi / 180  # in radian   # Bandwidth for a resource block (This value is representing 2*theta instead of theta)
+    THETA = 45 * math.pi / 180  # in radian   # Bandwidth for a resource block (This value is representing 2*theta instead of theta)
     BW_UAV = 5e6  # Total Bandwidth per UAV
     BW_RB = 180e3  # Bandwidth of a Resource Block
     ACTUAL_BW_UAV = BW_UAV * 0.9
@@ -75,7 +76,7 @@ class UAVenv(gym.Env):
         self.state = np.zeros((self.NUM_UAV, 3), dtype=np.int32)
         # set the states to the hotspots and one at the centre for faster convergence
         # further complexity by choosing random value of state
-        self.state[:, 0:2] = [[2, 2], [8, 5], [4, 7], [10, 3], [2, 3]]
+        self.state[:, 0:2] = [[1, 2], [4, 2], [7, 3], [3, 8], [4, 5]]
         self.state[:, 2] = self.UAV_HEIGHT
         self.coverage_radius = self.UAV_HEIGHT * np.tan(self.THETA / 2)
         self.coverage_area = 2*self.coverage_radius
@@ -142,7 +143,6 @@ class UAVenv(gym.Env):
                 if dist_u_uav[close_uav, i] <= self.coverage_area:        # UAV - User distance within the coverage radius then only connection request
                     connection_request[close_uav, i] = 1                  # All staifies, then connection request for the UAV - User
 
-        # print(connection_request)
 
         # Allocating only 70% of max cap in first run
         # After all the user has send their connection request,
@@ -150,25 +150,23 @@ class UAVenv(gym.Env):
         user_asso_flag = np.zeros(shape=(self.NUM_UAV, self.NUM_USER), dtype="int")
         for i in range(self.NUM_UAV):
             # Maximum Capacity for a single UAV
-            cap_user_num = int(0.7* max_user_num)
+            cap_user_num = int(1* max_user_num)
             # Sorting the users with the connection request to this UAV
             temp_user = np.where(connection_request[i, :] == 1)
             temp_user_distance = dist_u_uav[i, temp_user]
-            # print(temp_user)
-            # print(temp_user_distance)
             temp_user_sorted = np.argsort(temp_user_distance) # Contains user index with closest 2D distance value (out of requested user)
             # The user list are already sorted, to associate flag bit of user upto the index from
             # min(max_user, max_number_of_user_inside_coverage_area)
             temp_user_idx = temp_user_sorted[0, 0:min(cap_user_num, (np.size(temp_user_sorted)))]
-            temp_user_actual_idx = np.where(dist_u_uav[i,:] == temp_user_distance[0,temp_user_idx])
+            # Index for the mid numpy array
+            temp_user_mid_idx = temp_user_sorted[0, temp_user_idx]
+            temp_user = np.array(temp_user)
+            # Actual index of the users that send connection request, selected using distance value within the defined capacity
+            temp_user_actual_idx = temp_user[0, temp_user_mid_idx]
             # Set user association flag to 1 for that UAV and closest user index
-
             user_asso_flag[i, temp_user_actual_idx] = 1
-            # print(temp_user_actual_idx)
-            # print(user_asso_flag)
 
 
-        # print(user_asso_flag)
         # For the second sweep, sweep through all users
         # If the user is not associated choose the closest UAV and check whether it has any available resource
         # If so allocate the resource and set the User association flag bit of that user to 1
@@ -181,15 +179,15 @@ class UAVenv(gym.Env):
                         user_asso_flag[close_id, j] = 1
                         break
 
-        # print(user_asso_flag)
+
         # Need to work on the return parameter of done, info, reward, and obs
         # Calculation of reward function too i.e. total bandwidth provided to the user
 
         reward = sum(sum(user_asso_flag))
-        # print(reward)
 
         if flag != 0:
             isDone = True
+            reward = -100
 
         # Return of obs, reward, done, info
         return np.copy(self.state).reshape(1, self.NUM_UAV * 3), reward, isDone, "empty"
@@ -197,6 +195,7 @@ class UAVenv(gym.Env):
     def render(self, ax, mode='human', close=False):
         # implement viz
         if mode == 'human':
+            ax.remove()
             position = self.state[:, 0:2] * self.grid_space
             ax.scatter(self.u_loc[:, 0], self.u_loc[:, 1], c = '#ff0000', marker='o')
             ax.scatter(position[:, 0], position[:, 1], c = '#000000', marker='x')
@@ -207,7 +206,7 @@ class UAVenv(gym.Env):
         # reset out states
         # set the states to the hotspots and one at the centre for faster convergence
         # further complexity by choosing random value of state
-        self.state[:, 0:2] = [[2, 2], [8, 5], [4, 7], [10, 3], [2, 3]]
+        self.state[:, 0:2] = [[1, 2], [4, 2], [7, 3], [3, 8], [4, 5]]
         self.state[:, 2] = self.UAV_HEIGHT
         return self.state
 

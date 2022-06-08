@@ -48,11 +48,12 @@ def Q_Learning(env, num_episode, num_epoch, discount_factor, alpha, epsilon):
             next_state = u_env.get_state()
             
             # If done break from the loop (go to next episode)
-            if done:
-                break
+            # if done:
+            #     break
 
             # Update of the episodic reward
             episode_reward[i_episode] += reward
+            # print(reward)
 
             # Use of Temporal Difference Update
             for k in range(NUM_UAV):
@@ -72,19 +73,16 @@ def Q_Learning(env, num_episode, num_epoch, discount_factor, alpha, epsilon):
             for t in range(100):
                 drone_act_list = []
                 for k in range(NUM_UAV):
-                    best_next_action = np.argmax(Q[k][int(next_state[k, 0] * GRID_SIZE + next_state[k, 1])]) + 1
+                    best_next_action = np.argmax(Q[k][int(states[k, 0] * GRID_SIZE + states[k, 1])]) + 1
                     drone_act_list.append(best_next_action)
                 temp_data = u_env.step(drone_act_list)
-                # if temp_data[2]:
-                #     break
-                next_state = u_env.get_state()
-                states = next_state
+                states = u_env.get_state()
             # Plot the images
-            ax1.imshow(u_env.get_full_obs())
-            # ax2.imshow(u_env.get_joint_obs())
-            plt.pause(0.5)
-            plt.draw()
-            # u_env.render(ax1)
+            # ax1.imshow(u_env.get_full_obs())
+            # # ax2.imshow(u_env.get_joint_obs())
+            # plt.pause(0.5)
+            # plt.draw()
+            u_env.render(ax1)
             
 
     return Q, episode_reward, states
@@ -97,8 +95,8 @@ NUM_UAV = u_env.NUM_UAV
 NUM_USER = u_env.NUM_USER
 num_episode = 100
 num_epochs = 500
-discount_factor = 0.9
-alpha = 0.025
+discount_factor = 0.99
+alpha = 0.5
 epsilon = 0.1
 
 random.seed(10)

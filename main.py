@@ -85,7 +85,7 @@ def Q_Learning(env, num_episode, num_epoch, discount_factor, alpha, epsilon):
             u_env.render(ax1)
             
 
-    return Q, episode_reward, states
+    return Q, episode_reward, states, reward
 
 
 # Defining System Parameters
@@ -93,21 +93,23 @@ u_env = UAVenv()
 GRID_SIZE = u_env.GRID_SIZE
 NUM_UAV = u_env.NUM_UAV
 NUM_USER = u_env.NUM_USER
-num_episode = 100
+num_episode = 2000
 num_epochs = 500
-discount_factor = 0.99
+discount_factor = 0.8
 alpha = 0.5
 epsilon = 0.1
 
 random.seed(10)
 
-Q, episode_rewards, state = Q_Learning(u_env, num_episode, num_epochs, discount_factor, alpha, epsilon)
+Q, episode_rewards, state, reward = Q_Learning(u_env, num_episode, num_epochs, discount_factor, alpha, epsilon)
 
 mdict = {'Q': Q}
 savemat('Q.mat', mdict)
 
 print(state)
+print('Total Connected User in Final Stage', reward)
 # Plot the accumulated reward vs episodes
 fig = plt.figure()
 plt.plot(range(0, num_episode), episode_rewards)
 plt.show()
+

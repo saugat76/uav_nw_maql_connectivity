@@ -12,6 +12,7 @@ import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
 import random
+import matplotlib.patches as mpatches
 
 
 ###################################
@@ -29,9 +30,9 @@ class UAVenv(gym.Env):
     LightSpeed = 3 * (10 ** 8)  # Speed of Light
     WaveLength = LightSpeed / (Fc * (10 ** 9))  # Wavelength of the wave
     COVERAGE_XY = 1000
-    UAV_HEIGHT = 300
+    UAV_HEIGHT = 350
     BS_LOC = np.zeros((NUM_UAV, 3))
-    THETA = 45 * math.pi / 180  # in radian   # Bandwidth for a resource block (This value is representing 2*theta instead of theta)
+    THETA = 60 * math.pi / 180  # in radian   # Bandwidth for a resource block (This value is representing 2*theta instead of theta)
     BW_UAV = 5e6  # Total Bandwidth per UAV
     BW_RB = 180e3  # Bandwidth of a Resource Block
     ACTUAL_BW_UAV = BW_UAV * 0.9
@@ -76,11 +77,11 @@ class UAVenv(gym.Env):
         self.state = np.zeros((self.NUM_UAV, 3), dtype=np.int32)
         # set the states to the hotspots and one at the centre for faster convergence
         # further complexity by choosing random value of state
-        self.state[:, 0:2] = [[1, 2], [4, 2], [7, 3], [3, 8], [4, 5]]
+        # self.state[:, 0:2] = [[1, 2], [4, 2], [7, 3], [3, 8], [4, 5]]
+        self.state[:, 0:2] = [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]
         self.state[:, 2] = self.UAV_HEIGHT
         self.coverage_radius = self.UAV_HEIGHT * np.tan(self.THETA / 2)
-        self.coverage_area = 2*self.coverage_radius
-        print(self.coverage_area)
+        print(self.coverage_radius)
 
     def step(self, action):
         # Assignment of sub carrier band to users
@@ -89,6 +90,7 @@ class UAVenv(gym.Env):
         # Deal with out of boundaries conditions
         isDone = False
         flag = 0
+        previous_reward = 0
         # Calculate the distance of every users to the UAV BS and organize as a list
         dist_u_uav = np.zeros(shape=(self.NUM_UAV, self.NUM_USER))
         for i in range(self.NUM_UAV):
@@ -138,9 +140,9 @@ class UAVenv(gym.Env):
         connection_request = np.zeros(shape=(self.NUM_UAV, self.NUM_USER), dtype="int")
 
         for i in range(self.NUM_USER):
-            if not(np.any(connection_request[:,i] == 1)):                      # Skip if connection request already sent
+            if not(np.any(connection_request[:,i] == 1)):                 # Skip if connection request already sent
                 close_uav = np.argmin(dist_u_uav[:,i])                    # Closest UAV index
-                if dist_u_uav[close_uav, i] <= self.coverage_area:        # UAV - User distance within the coverage radius then only connection request
+                if dist_u_uav[close_uav, i] <= self.coverage_radius:      # UAV - User distance within the coverage radius then only connection request
                     connection_request[close_uav, i] = 1                  # All staifies, then connection request for the UAV - User
 
 
@@ -150,7 +152,7 @@ class UAVenv(gym.Env):
         user_asso_flag = np.zeros(shape=(self.NUM_UAV, self.NUM_USER), dtype="int")
         for i in range(self.NUM_UAV):
             # Maximum Capacity for a single UAV
-            cap_user_num = int(1* max_user_num)
+            cap_user_num = int(0.8 * max_user_num)
             # Sorting the users with the connection request to this UAV
             temp_user = np.where(connection_request[i, :] == 1)
             temp_user_distance = dist_u_uav[i, temp_user]
@@ -182,12 +184,13 @@ class UAVenv(gym.Env):
 
         # Need to work on the return parameter of done, info, reward, and obs
         # Calculation of reward function too i.e. total bandwidth provided to the user
-
-        reward = sum(sum(user_asso_flag))
+        new_reward = sum(sum(user_asso_flag))
+        reward = new_reward - previous_reward
+        previous_reward = new_reward
 
         if flag != 0:
             isDone = True
-            reward = -100
+            # reward -= 1
 
         # Return of obs, reward, done, info
         return np.copy(self.state).reshape(1, self.NUM_UAV * 3), reward, isDone, "empty"
@@ -195,18 +198,27 @@ class UAVenv(gym.Env):
     def render(self, ax, mode='human', close=False):
         # implement viz
         if mode == 'human':
-            ax.remove()
+            ax.cla()
             position = self.state[:, 0:2] * self.grid_space
-            ax.scatter(self.u_loc[:, 0], self.u_loc[:, 1], c = '#ff0000', marker='o')
-            ax.scatter(position[:, 0], position[:, 1], c = '#000000', marker='x')
+            ax.scatter(self.u_loc[:, 0], self.u_loc[:, 1], c = '#ff0000', marker='o', label = "Users")
+            ax.scatter(position[:, 0], position[:, 1], c = '#000000', marker='x', label = "UAV")
+            # ax.scatter(position[:, 0], position[:, 1], s=(self.coverage_radius*2*math.pi), facecolors='none', edgecolors='blue')
+            for (i,j) in (position[:,:]):
+                cc = plt.Circle((i,j), self.coverage_radius, alpha=0.1)
+                ax.set_aspect(1)
+                ax.add_artist(cc)
+            ax.legend()
             plt.pause(0.5)
+            plt.xlim(-50, 1050)
+            plt.ylim(-50, 1050)
             plt.draw()
 
     def reset(self):
         # reset out states
         # set the states to the hotspots and one at the centre for faster convergence
         # further complexity by choosing random value of state
-        self.state[:, 0:2] = [[1, 2], [4, 2], [7, 3], [3, 8], [4, 5]]
+        # self.state[:, 0:2] = [[1, 2], [4, 2], [7, 3], [3, 8], [4, 5]]
+        self.state[:, 0:2] = [[0, 0], [0, 0], [0, 0], [0, 0], [0, 0]]
         self.state[:, 2] = self.UAV_HEIGHT
         return self.state
 

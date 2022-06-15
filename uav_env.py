@@ -154,7 +154,7 @@ class UAVenv(gym.Env):
             temp_user_sorted = np.argsort(temp_user_distance) # Contains user index with closest 2D distance value (out of requested user)
             # The user list are already sorted, to associate flag bit of user upto the index from
             # min(max_user, max_number_of_user_inside_coverage_area)
-            temp_user_idx = temp_user_sorted[0, 0:min(cap_user_num, (np.size(temp_user_sorted)))]
+            temp_user_idx = temp_user_sorted[0, 0:(min(cap_user_num, (np.size(temp_user_sorted)))-1)]
             # Index for the mid numpy array
             temp_user = np.array(temp_user)
             # Actual index of the users that send connection request, selected using distance value within the defined capacity
@@ -170,10 +170,11 @@ class UAVenv(gym.Env):
             if not(np.any(user_asso_flag[:, j] != 0)):
                 close_uav_id = dist_u_uav[:, j]
                 close_uav_id = [i[0] for i in sorted(enumerate(close_uav_id), key=lambda x: x[1])]
-                for close_id in close_uav_id:
-                    if np.sum(user_asso_flag[close_id,:]) < max_user_num and dist_u_uav[close_id, j] <= self.coverage_radius:
-                        user_asso_flag[close_id, j] = 1
-                        break
+                if dist_u_uav[close_uav_id[0], j] <= self.coverage_radius:
+                    for close_id in close_uav_id:
+                        if np.sum(user_asso_flag[close_id,:]) < max_user_num:
+                            user_asso_flag[close_id, j] = 1
+                            break
 
 
         # Need to work on the return parameter of done, info, reward, and obs

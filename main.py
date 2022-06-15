@@ -1,4 +1,3 @@
-import imp
 import random
 import numpy as np
 from collections import defaultdict
@@ -91,7 +90,7 @@ u_env = UAVenv()
 GRID_SIZE = u_env.GRID_SIZE
 NUM_UAV = u_env.NUM_UAV
 NUM_USER = u_env.NUM_USER
-num_episode = 500
+num_episode = 50
 num_epochs = 500
 discount_factor = 0.85
 alpha = 0.5

@@ -3,15 +3,14 @@
 ## Environment Setup of for UAV  ##
 ###################################
 
+from dis import dis
 from turtle import pos
 import gym
 from gym import spaces
 import numpy as np
 import math
 import pandas as pd
-import matplotlib
 import matplotlib.pyplot as plt
-import random
 import matplotlib.patches as mpatches
 
 
@@ -59,10 +58,6 @@ class UAVenv(gym.Env):
     # Saving the user location on a file instead of generating everytime
 
     USER_LOC = np.loadtxt('UserLocation.txt', dtype=np.int32, delimiter=' ')
-
-    # plt.scatter(USER_LOC[:, 0], USER_LOC[:, 1])
-    # plt.show()
-
 
     def __init__(self):
         super(UAVenv, self).__init__()
@@ -161,10 +156,9 @@ class UAVenv(gym.Env):
             # min(max_user, max_number_of_user_inside_coverage_area)
             temp_user_idx = temp_user_sorted[0, 0:min(cap_user_num, (np.size(temp_user_sorted)))]
             # Index for the mid numpy array
-            temp_user_mid_idx = temp_user_sorted[0, temp_user_idx]
             temp_user = np.array(temp_user)
             # Actual index of the users that send connection request, selected using distance value within the defined capacity
-            temp_user_actual_idx = temp_user[0, temp_user_mid_idx]
+            temp_user_actual_idx = temp_user[0, temp_user_idx]
             # Set user association flag to 1 for that UAV and closest user index
             user_asso_flag[i, temp_user_actual_idx] = 1
 
@@ -173,11 +167,11 @@ class UAVenv(gym.Env):
         # If the user is not associated choose the closest UAV and check whether it has any available resource
         # If so allocate the resource and set the User association flag bit of that user to 1
         for j in range(self.NUM_USER):
-            if np.any(user_asso_flag[:, j] != 0):
+            if not(np.any(user_asso_flag[:, j] != 0)):
                 close_uav_id = dist_u_uav[:, j]
                 close_uav_id = [i[0] for i in sorted(enumerate(close_uav_id), key=lambda x: x[1])]
                 for close_id in close_uav_id:
-                    if np.sum(user_asso_flag[close_id,:]) <= max_user_num:
+                    if np.sum(user_asso_flag[close_id,:]) < max_user_num and dist_u_uav[close_id, j] <= self.coverage_radius:
                         user_asso_flag[close_id, j] = 1
                         break
 
@@ -190,7 +184,7 @@ class UAVenv(gym.Env):
 
         if flag != 0:
             isDone = True
-            # reward -= 1
+            # reward -= 10
 
         # Return of obs, reward, done, info
         return np.copy(self.state).reshape(1, self.NUM_UAV * 3), reward, isDone, "empty"
@@ -202,7 +196,6 @@ class UAVenv(gym.Env):
             position = self.state[:, 0:2] * self.grid_space
             ax.scatter(self.u_loc[:, 0], self.u_loc[:, 1], c = '#ff0000', marker='o', label = "Users")
             ax.scatter(position[:, 0], position[:, 1], c = '#000000', marker='x', label = "UAV")
-            # ax.scatter(position[:, 0], position[:, 1], s=(self.coverage_radius*2*math.pi), facecolors='none', edgecolors='blue')
             for (i,j) in (position[:,:]):
                 cc = plt.Circle((i,j), self.coverage_radius, alpha=0.1)
                 ax.set_aspect(1)
@@ -229,73 +222,3 @@ class UAVenv(gym.Env):
             state_loc[k, 1] = self.state[k, 1]
         return state_loc
 
-    def get_full_obs(self):
-        obs = np.ones((self.COVERAGE_XY + 1, self.COVERAGE_XY + 1, 3), dtype=float)
-        for i in range(self.NUM_USER):
-            obs[self.USER_LOC[i, 0], self.USER_LOC[i, 1], 0] = 1
-            obs[self.USER_LOC[i, 0], self.USER_LOC[i, 1], 1] = 0
-            obs[self.USER_LOC[i, 0], self.USER_LOC[i, 1], 2] = 0
-        for i in range(self.NUM_UAV):
-            obs[self.state[i, 0] * self.grid_space, self.state[i, 1] * self.grid_space, 0] = 0
-            obs[self.state[i, 0] * self.grid_space, self.state[i, 1] * self.grid_space, 1] = 0
-            obs[self.state[i, 0] * self.grid_space, self.state[i, 1] * self.grid_space, 2] = 1
-        return obs
-    
-    def get_drone_obs(self, state):
-        obs_size = int(2 * self.coverage_radius - 1)
-        obs = np.ones((obs_size, obs_size, 3))
-        for i in range(obs_size):
-            for j in range(obs_size):
-                x = i + state[0] - self.coverage_radius + 1
-                y = j + state[1] - self.coverage_radius + 1
-
-                for k in range(self.NUM_USER):
-                    
-                    if self.u_loc[k, 0] == x and self.u_loc[k, 1] == y:
-                        obs[i, j, 0] = 1
-                        obs[i, j, 1] = 0
-                        obs[i, j, 2] = 0
-
-                    if x < 0 or x > (self.GRID_SIZE  - 1)*self.grid_space or y < 0 or y > (self.GRID_SIZE - 1)*self.grid_space:
-                        obs[i, j, 0] = 0.5
-                        obs[i, j, 1] = 0.5
-                        obs[i, j, 2] = 0.5
-
-                    if (self.coverage_radius - 1 - i) * (self.coverage_radius - 1 - i) + (
-                            self.coverage_radius - 1 - j) * (
-                            self.coverage_radius - 1 - i) > self.coverage_radius * self.coverage_radius:
-                        obs[i, j, 0] = 0.5
-                        obs[i, j, 1] = 0.5
-                        obs[i, j, 2] = 0.5
-
-                    return obs
-
-    def get_joint_obs(self):
-        obs = np.ones((self.GRID_SIZE, self.GRID_SIZE, 3))
-        for i in range(self.GRID_SIZE):
-            for j in range(self.GRID_SIZE):
-                obs[i, j, 0] = 0.5
-                obs[i, j, 1] = 0.5
-                obs[i, j, 2] = 0.5
-
-        for k in range(self.NUM_UAV):
-            temp = self.get_drone_obs(self.state[k,:])
-            size = temp.shape[0]
-            for i in range(size):
-                for j in range(size):
-                    x = i + self.state[k, 0] - self.coverage_radius + 1
-                    y = j + self.state[k, 1] - self.coverage_radius + 1
-                    if_obs = True
-                    if temp[i, j, 0] == 0.5 and temp[i, j, 1] == 0.5 and temp[i, j, 2] == 0.5:
-                        if_obs = False
-                    if if_obs == True:
-                        obs[x, y, 0] = temp[i, j, 0]
-                        obs[x, y, 1] = temp[i, j, 1]
-                        obs[x, y, 2] = temp[i, j, 2]
-
-        for k in range(self.NUM_UAV):
-            obs[self.state[k, 0], self.state[k, 1], 0] = 0
-            obs[self.state[k, 0], self.state[k, 1], 1] = 0
-            obs[self.state[k, 0]. self.state[k, 1], 2] = 1
-
-        return obs

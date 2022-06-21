@@ -3,7 +3,6 @@
 ## Environment Setup of for UAV  ##
 ###################################
 
-from dis import dis
 from turtle import pos
 import gym
 from gym import spaces
@@ -12,6 +11,7 @@ import math
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import random
 
 
 ###################################
@@ -32,28 +32,40 @@ class UAVenv(gym.Env):
     UAV_HEIGHT = 350
     BS_LOC = np.zeros((NUM_UAV, 3))
     THETA = 60 * math.pi / 180  # in radian   # Bandwidth for a resource block (This value is representing 2*theta instead of theta)
-    BW_UAV = 5e6  # Total Bandwidth per UAV
+    BW_UAV = 4e6  # Total Bandwidth per UAV   # Update to decrease the available BW
     BW_RB = 180e3  # Bandwidth of a Resource Block
     ACTUAL_BW_UAV = BW_UAV * 0.9
     grid_space = 100
     GRID_SIZE = int(COVERAGE_XY / grid_space)  # Each grid defined as 100m block
 
+    
+    ## Polar to Cartesian and vice versa
+    def pol2cart(r,theta):
+        return (r * np.cos(theta), r * np.sin(theta))
+    
+    def cart2pol(z):
+        return (np.abs(z), np.angle(z))
+
     # User distribution on the target area // NUM_USER/5 users in each of four hotspots
     # Remaining NUM_USER/5 is then uniformly distributed in the target area
 
-    # HOTSPOTS = np.array(
-    #     [[200, 200], [800, 800], [300, 800], [800, 300]])  # Position setup in grid size rather than actual distance
-    # USER_DIS = int(NUM_USER / NUM_UAV)
-    # USER_LOC = np.zeros((NUM_USER - USER_DIS, 2))
+    HOTSPOTS = np.array(
+        [[200, 200], [800, 800], [300, 800], [800, 300]])  # Position setup in grid size rather than actual distance
+    USER_DIS = int(NUM_USER / NUM_UAV)
+    USER_LOC = np.zeros((NUM_USER - USER_DIS, 2))
     
-    # for i in range(len(HOTSPOTS)):
-    #     for j in range(USER_DIS):
-    #         temp_loc_1 = random.uniform(HOTSPOTS[i, 0] - 100, HOTSPOTS[i, 0] + 100)
-    #         temp_loc_2 = random.uniform(HOTSPOTS[i, 1] - 100, HOTSPOTS[i, 1] + 100)
-    #         USER_LOC[i * USER_DIS + j, :] = [temp_loc_1, temp_loc_2]
-    # temp_loc = np.random.uniform(low=0, high=COVERAGE_XY, size=(USER_DIS, 2))
-    # USER_LOC = np.concatenate((USER_LOC, temp_loc))
-    # np.savetxt('UserLocation.txt', USER_LOC, fmt='%.3e', delimiter=' ', newline='\n')
+    for i in range(len(HOTSPOTS)):
+        for j in range(USER_DIS):
+            temp_loc_r = random.uniform(-(1/3.5)*COVERAGE_XY, (1/3.5)*COVERAGE_XY)
+            temp_loc_theta = random.uniform(0, 2*math.pi)
+            temp_loc = pol2cart(temp_loc_r, temp_loc_theta)
+            (temp_loc_1, temp_loc_2) = temp_loc
+            temp_loc_1 = temp_loc_1 + HOTSPOTS[i, 0]
+            temp_loc_2 = temp_loc_2 + HOTSPOTS[i, 1]
+            USER_LOC[i * USER_DIS + j, :] = [temp_loc_1, temp_loc_2]
+    temp_loc = np.random.uniform(low=0, high=COVERAGE_XY, size=(USER_DIS, 2))
+    USER_LOC = np.concatenate((USER_LOC, temp_loc))
+    np.savetxt('UserLocation.txt', USER_LOC, fmt='%.3e', delimiter=' ', newline='\n')
 
     # Saving the user location on a file instead of generating everytime
 
@@ -147,7 +159,7 @@ class UAVenv(gym.Env):
         user_asso_flag = np.zeros(shape=(self.NUM_UAV, self.NUM_USER), dtype="int")
         for i in range(self.NUM_UAV):
             # Maximum Capacity for a single UAV
-            cap_user_num = int(0.8 * max_user_num)
+            cap_user_num = int(1 * max_user_num)
             # Sorting the users with the connection request to this UAV
             temp_user = np.where(connection_request[i, :] == 1)
             temp_user_distance = dist_u_uav[i, temp_user]

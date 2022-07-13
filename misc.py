@@ -7,7 +7,6 @@ import math
 
 def final_render(state):
     USER_LOC = np.loadtxt('UserLocation.txt', dtype=np.int32, delimiter=' ')
-    state = np.array([[10,4],[2,3],[7,3],[9,7],[3,8]])
     u_loc = USER_LOC
     fig = plt.figure()
     gs = GridSpec(1, 1, figure=fig)

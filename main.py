@@ -76,6 +76,8 @@ def Q_Learning(env, num_episode, num_epoch, discount_factor, alpha, epsilon):
                 temp_data = u_env.step(drone_act_list)
                 states = u_env.get_state()
             u_env.render(ax1)
+            print(drone_act_list)
+            print("Number of user connected in ",i_episode," episode is: ", temp_data[4])
             
 
     return Q, episode_reward, states, reward
@@ -90,9 +92,9 @@ u_env = UAVenv()
 GRID_SIZE = u_env.GRID_SIZE
 NUM_UAV = u_env.NUM_UAV
 NUM_USER = u_env.NUM_USER
-num_episode = 500
+num_episode = 300
 num_epochs = 500
-discount_factor = 0.85
+discount_factor = 0.90
 alpha = 0.5
 epsilon = 0.1
 

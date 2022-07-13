@@ -200,7 +200,7 @@ class UAVenv(gym.Env):
             reward -= 10
 
         # Return of obs, reward, done, info
-        return np.copy(self.state).reshape(1, self.NUM_UAV * 3), reward, isDone, "empty"
+        return np.copy(self.state).reshape(1, self.NUM_UAV * 3), reward, isDone, "empty", new_reward
 
     def render(self, ax, mode='human', close=False):
         # implement viz

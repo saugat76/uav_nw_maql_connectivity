@@ -88,8 +88,7 @@ def Q_Learning(env, num_episode, num_epoch, discount_factor, alpha, epsilon, min
         # print(epsilon)
         if epsilon > min_epsilon:
             epsilon = epsilon * decay_constant
-        print(epsilon)
-
+            
     return Q, episode_reward, states, temp_data[4], best_state, best_result
 
 def smooth(y, pts):

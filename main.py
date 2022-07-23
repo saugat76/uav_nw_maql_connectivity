@@ -81,9 +81,9 @@ def Q_Learning(env, num_episode, num_epoch, discount_factor, alpha, epsilon):
                     best_result = temp_data[4]
                     best_state = states
             u_env.render(ax1)
+            plt.title("Intermediate state of UAV in current episode")
             print(drone_act_list)
             print("Number of user connected in ",i_episode," episode is: ", temp_data[4])
-            
 
     return Q, episode_reward, states, reward, best_state, best_result
 

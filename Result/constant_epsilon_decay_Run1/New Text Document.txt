@@ -1,0 +1,8 @@
+num_episode = 400
+num_epochs = 100
+discount_factor = 0.95
+alpha = 0.5
+epsilon_con = 1
+epsilon = 1
+min_epsilon = 0.1
+constant_decay = 0.99 per episode

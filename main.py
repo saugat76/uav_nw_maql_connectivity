@@ -92,9 +92,9 @@ u_env = UAVenv()
 GRID_SIZE = u_env.GRID_SIZE
 NUM_UAV = u_env.NUM_UAV
 NUM_USER = u_env.NUM_USER
-num_episode = 300
-num_epochs = 500
-discount_factor = 0.90
+num_episode = 400
+num_epochs = 100
+discount_factor = 0.95
 alpha = 0.5
 epsilon = 0.1
 

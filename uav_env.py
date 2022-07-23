@@ -12,6 +12,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import random
+from matplotlib.gridspec import GridSpec
+
 
 
 ###################################
@@ -70,6 +72,7 @@ class UAVenv(gym.Env):
     # Saving the user location on a file instead of generating everytime
 
     USER_LOC = np.loadtxt('UserLocation.txt', dtype=np.int32, delimiter=' ')
+    plt.scatter(USER_LOC[:,0], USER_LOC[:,1])
 
     def __init__(self):
         super(UAVenv, self).__init__()
@@ -197,7 +200,7 @@ class UAVenv(gym.Env):
 
         if flag != 0:
             isDone = True
-            reward -= 10
+            reward -= flag*5
 
         # Return of obs, reward, done, info
         return np.copy(self.state).reshape(1, self.NUM_UAV * 3), reward, isDone, "empty", new_reward

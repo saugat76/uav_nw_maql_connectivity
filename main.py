@@ -8,11 +8,13 @@ from scipy.signal import savgol_filter
 from uav_env import UAVenv
 from misc import final_render
 
-def Q_Learning(env, num_episode, num_epoch, discount_factor, alpha, epsilon):
+def Q_Learning(env, num_episode, num_epoch, discount_factor, alpha, epsilon, min_epsilon):
     Q = np.random.rand(NUM_UAV, int((GRID_SIZE + 1) * (GRID_SIZE + 1)), 5)
+    decay_constant = 0.99
 
     # Keeping track of the episode reward
     episode_reward = np.zeros(num_episode)
+    best_result = 0
 
     fig = plt.figure()
     gs = GridSpec(1, 1, figure=fig)
@@ -38,6 +40,11 @@ def Q_Learning(env, num_episode, num_epoch, discount_factor, alpha, epsilon):
                     action = action + 1
                 drone_act_list.append(action)
 
+            if epsilon > min_epsilon:
+                epsilon = epsilon * decay_constant
+
+            print(epsilon)
+            
             # Find the global reward for the combined set of actions for the UAV
             temp_data = u_env.step(drone_act_list)
             reward = temp_data[1]
@@ -75,12 +82,17 @@ def Q_Learning(env, num_episode, num_epoch, discount_factor, alpha, epsilon):
                     drone_act_list.append(best_next_action)
                 temp_data = u_env.step(drone_act_list)
                 states = u_env.get_state()
+                if best_result < temp_data[4]:
+                    best_result = temp_data[4]
+                    best_state = states
             u_env.render(ax1)
+            plt.title("Intermediate state of UAV in current episode")
             print(drone_act_list)
             print("Number of user connected in ",i_episode," episode is: ", temp_data[4])
             
+            
 
-    return Q, episode_reward, states, reward
+    return Q, episode_reward, states, temp_data[4], best_state, best_result
 
 def smooth(y, pts):
     box = np.ones(pts)/pts
@@ -92,15 +104,16 @@ u_env = UAVenv()
 GRID_SIZE = u_env.GRID_SIZE
 NUM_UAV = u_env.NUM_UAV
 NUM_USER = u_env.NUM_USER
-num_episode = 300
-num_epochs = 500
-discount_factor = 0.90
+num_episode = 400
+num_epochs = 100
+discount_factor = 0.95
 alpha = 0.5
-epsilon = 0.1
+epsilon = 1
+min_epsilon = 0.1
 
 random.seed(10)
 
-Q, episode_rewards, state, reward = Q_Learning(u_env, num_episode, num_epochs, discount_factor, alpha, epsilon)
+Q, episode_rewards, state, reward, best_state, best_result = Q_Learning(u_env, num_episode, num_epochs, discount_factor, alpha, epsilon, min_epsilon)
 
 mdict = {'Q': Q}
 savemat('Q.mat', mdict)
@@ -110,9 +123,21 @@ print('Total Connected User in Final Stage', reward)
 # Plot the accumulated reward vs episodes
 fig = plt.figure()
 plt.plot(range(0, num_episode), episode_rewards)
+plt.xlabel("Episode")
+plt.ylabel("Episodic Reward")
+plt.title("Episode vs Episodic Reward")
 plt.show()
 fig = plt.figure()
 smoothed = smooth(episode_rewards, 10)
 plt.plot(range(0, num_episode-10), smoothed[0:len(smoothed)-10] )
+plt.xlabel("Episode")
+plt.ylabel("Episodic Reward")
+plt.title("Smoothed Episode vs Episodic Reward")
 plt.show()
-final_render(state)
+fig = plt.figure()
+final_render(state, "final")
+fig = plt.figure()
+final_render(best_state, "best")
+print("Best State")
+print(best_state)
+print("The total number of connected user (as per best result)", best_result)

@@ -85,7 +85,7 @@ def Q_Learning(env, num_episode, num_epoch, discount_factor, alpha, epsilon):
             print("Number of user connected in ",i_episode," episode is: ", temp_data[4])
             
 
-    return Q, episode_reward, states, reward, best_result, best_state
+    return Q, episode_reward, states, reward, best_state, best_result
 
 def smooth(y, pts):
     box = np.ones(pts)/pts
@@ -105,7 +105,7 @@ epsilon = 0.1
 
 random.seed(10)
 
-Q, episode_rewards, state, reward, best_result, best_state = Q_Learning(u_env, num_episode, num_epochs, discount_factor, alpha, epsilon)
+Q, episode_rewards, state, reward, best_state, best_result = Q_Learning(u_env, num_episode, num_epochs, discount_factor, alpha, epsilon)
 
 mdict = {'Q': Q}
 savemat('Q.mat', mdict)
@@ -115,9 +115,21 @@ print('Total Connected User in Final Stage', reward)
 # Plot the accumulated reward vs episodes
 fig = plt.figure()
 plt.plot(range(0, num_episode), episode_rewards)
+plt.xlabel("Episode")
+plt.ylabel("Episodic Reward")
+plt.title("Episode vs Episodic Reward")
 plt.show()
 fig = plt.figure()
 smoothed = smooth(episode_rewards, 10)
 plt.plot(range(0, num_episode-10), smoothed[0:len(smoothed)-10] )
+plt.xlabel("Episode")
+plt.ylabel("Episodic Reward")
+plt.title("Smoothed Episode vs Episodic Reward")
 plt.show()
-final_render(state)
+fig = plt.figure()
+final_render(state, "final")
+fig = plt.figure()
+final_render(best_state, "best")
+print("Best State")
+print(best_state)
+print("The total number of connected user (as per best result)", best_result)

@@ -14,6 +14,8 @@ def Q_Learning(env, num_episode, num_epoch, discount_factor, alpha, epsilon):
     # Keeping track of the episode reward
     episode_reward = np.zeros(num_episode)
 
+    best_result = 0
+
     fig = plt.figure()
     gs = GridSpec(1, 1, figure=fig)
     ax1 = fig.add_subplot(gs[0:1, 0:1])
@@ -75,12 +77,15 @@ def Q_Learning(env, num_episode, num_epoch, discount_factor, alpha, epsilon):
                     drone_act_list.append(best_next_action)
                 temp_data = u_env.step(drone_act_list)
                 states = u_env.get_state()
+                if best_result < temp_data[4]:
+                    best_result = temp_data[4]
+                    best_state = states
             u_env.render(ax1)
             print(drone_act_list)
             print("Number of user connected in ",i_episode," episode is: ", temp_data[4])
             
 
-    return Q, episode_reward, states, reward
+    return Q, episode_reward, states, reward, best_result, best_state
 
 def smooth(y, pts):
     box = np.ones(pts)/pts
@@ -100,7 +105,7 @@ epsilon = 0.1
 
 random.seed(10)
 
-Q, episode_rewards, state, reward = Q_Learning(u_env, num_episode, num_epochs, discount_factor, alpha, epsilon)
+Q, episode_rewards, state, reward, best_result, best_state = Q_Learning(u_env, num_episode, num_epochs, discount_factor, alpha, epsilon)
 
 mdict = {'Q': Q}
 savemat('Q.mat', mdict)

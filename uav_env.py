@@ -6,7 +6,11 @@ import gym
 import numpy as np
 import math
 import matplotlib.pyplot as plt
-import time 
+import matplotlib.patches as mpatches
+import random
+from matplotlib.gridspec import GridSpec
+
+
 
 ###################################
 ##     UAV Class Defination      ##
@@ -48,7 +52,8 @@ class UAVenv(gym.Env):
 
     # Saving the user location on a file instead of generating everytime
 
-    USER_LOC = np.loadtxt('UserLocation.txt', delimiter=' ').astype(np.int64)
+    USER_LOC = np.loadtxt('UserLocation.txt', dtype=np.int32, delimiter=' ')
+    plt.scatter(USER_LOC[:,0], USER_LOC[:,1])
 
 
     #############################################################################
@@ -253,49 +258,9 @@ class UAVenv(gym.Env):
                     reward_solo[k] = np.copy(sum_user_assoc[k]) 
             reward = np.copy(reward_solo)
 
-        #############################################################################################
-        ##     Opt.2  No. of User Connected as Indiviudal Reward with Penalty Over Buffer Area     ##
-        #############################################################################################
-        elif info_exchange_lvl == 3:
-            sum_user_assoc = np.sum(user_asso_flag, axis = 1)
-            reward_solo = np.zeros(np.size(sum_user_assoc), dtype = "float32")
-            penalty_overlap = penalty_overlap.flatten()
-            for k in range(self.NUM_UAV):
-                if self.flag[k] != 0:
-                    reward_solo[k] = np.copy(sum_user_assoc[k] - 2) - penalty_overlap[k]
-                    isDone = True
-                else:
-                    reward_solo[k] = (sum_user_assoc[k] - penalty_overlap[k])
-            # Calculation of reward based in the change in the number of connected user
-            reward = np.copy(reward_solo)
-
-        # Collective reward exchange of nuumber of user associated and calculation of the reward based on it
-        # Only share the information to the neighbours based on distance values
-        ################################################################
-        ##     Opt.3  No. of User Connected as Collective Reward      ##
-        ################################################################
-        elif info_exchange_lvl == 2:    
-            sum_user_assoc = np.sum(user_asso_flag, axis = 1)
-            sum_user_assoc_temp = np.copy(sum_user_assoc)
-            reward_ind = np.zeros(np.size(sum_user_assoc))
-            reward = 0
-            for k in range(self.NUM_UAV):
-                if self.flag[k] != 0:
-                    temp_user_id = np.where(dist_uav_uav[k, :] <= self.UAV_DIST_THRS)
-                    reward_ind[k] = np.average(sum_user_assoc_temp[temp_user_id])
-                    reward_ind[k] -= 2
-                    isDone = True
-                else:
-                    temp_user_id = np.where(dist_uav_uav[k, :] <= self.UAV_DIST_THRS)
-                    reward_ind[k] = np.average(sum_user_assoc[temp_user_id])
-            reward = np.copy(reward_ind)
-
-        
-        # Defining the reward function by the number of covered user
-        ################################################################
-        ##            Opt.4  No. of User Covered as Reward            ##
-        ################################################################
-        # reward = np.copy(total_user_covered)
+        if flag != 0:
+            isDone = True
+            reward -= flag*5
 
         # Return of obs, reward, done, info
         return np.copy(self.state).reshape(1, self.NUM_UAV * 3), reward, isDone, "empty", sum_user_assoc, rb_allocated

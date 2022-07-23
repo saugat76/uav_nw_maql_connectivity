@@ -39,11 +39,6 @@ def Q_Learning(env, num_episode, num_epoch, discount_factor, alpha, epsilon, min
                     action = np.argmax(Q[k][int(states[k, 0] * (GRID_SIZE + 1) + states[k, 1])])
                     action = action + 1
                 drone_act_list.append(action)
-
-            if epsilon > min_epsilon:
-                epsilon = epsilon * decay_constant
-
-            print(epsilon)
             
             # Find the global reward for the combined set of actions for the UAV
             temp_data = u_env.step(drone_act_list)
@@ -89,8 +84,11 @@ def Q_Learning(env, num_episode, num_epoch, discount_factor, alpha, epsilon, min
             plt.title("Intermediate state of UAV in current episode")
             print(drone_act_list)
             print("Number of user connected in ",i_episode," episode is: ", temp_data[4])
-            
-            
+        
+        # print(epsilon)
+        if epsilon > min_epsilon:
+            epsilon = epsilon * decay_constant
+        print(epsilon)
 
     return Q, episode_reward, states, temp_data[4], best_state, best_result
 
@@ -108,6 +106,7 @@ num_episode = 400
 num_epochs = 100
 discount_factor = 0.95
 alpha = 0.5
+epsilon_con = 1
 epsilon = 1
 min_epsilon = 0.1
 

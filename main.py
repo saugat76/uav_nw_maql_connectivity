@@ -33,7 +33,7 @@ class Q_Learning:
         self.action_space_size = 5
         self.gamma = discount_factor
         # For 10x10 Grid there are 11 possisblity in each direction from 0 to 10
-        self.Q = np.random.rand(self.state_space_size[0] + 1, self.state_space_size[1]+ 1, self.action_space_size)
+        self.Q = np.zeros((self.state_space_size[0] + 1, self.state_space_size[1] + 1) * NUM_UAV)
 
     # Deployment of epsilon greedy policy
     def epsilon_greedy(self, state):

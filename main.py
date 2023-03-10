@@ -34,7 +34,6 @@ class Q_Learning:
         self.gamma = discount_factor
         # For 10x10 Grid there are 11 possisblity in each direction from 0 to 10
         self.Q = np.random.rand(self.state_space_size[0] + 1, self.state_space_size[1]+ 1, self.action_space_size)
-        print(np.shape(self.Q))
 
     # Deployment of epsilon greedy policy
     def epsilon_greedy(self, state):
@@ -70,17 +69,21 @@ u_env = UAVenv()
 GRID_SIZE = u_env.GRID_SIZE
 NUM_UAV = u_env.NUM_UAV
 NUM_USER = u_env.NUM_USER
-num_episode = 400
+num_episode = 800
 num_epochs = 100
 discount_factor = 0.95
-alpha = 1e-12
+alpha = 0.5
 batch_size = 512
 update_rate = 10  #50
 dnn_epoch = 1
-epsilon = 0.2
-epsilon_min = 0.2
+epsilon = 0.1
+epsilon_min = 0.1
 epsilon_decay = 1
 random.seed(SEED)
+
+## The whole problem of no convergence and no oscillation was dues to really low learning rate, as a result it was working 
+## really slowly as a result it was taking way to long to converge to more optimal position
+## Having a higher learning rate helped in this case 
 
 # Keeping track of the episode reward
 episode_reward = np.zeros(num_episode)
@@ -179,9 +182,9 @@ def smooth(y, pts):
 
 ## Save the data from the run as a file
 mdict = {'num_episode':range(0, num_episode),'episodic_reward': episode_reward}
-savemat(r'C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\Result\Run002episodic_reward.mat', mdict)
+savemat(r'C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\Result\Run002\Position Information with Distance Penalty - Level 3\episodic_reward.mat', mdict)
 mdict_2 = {'num_episode':range(0, num_episode),'connected_user': episode_user_connected}
-savemat(r'C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\Result\Run002\connected_user.mat', mdict_2)
+savemat(r'C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\Result\Run002\Position Information with Distance Penalty - Level 3\connected_user.mat', mdict_2)
 
 
 # Plot the accumulated reward vs episodes

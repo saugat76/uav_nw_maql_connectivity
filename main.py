@@ -135,8 +135,21 @@ if __name__ == "__main__":
     epsilon_decay = args.epsilon_decay_steps
     dnn_epoch = 1
 
-    # Set the run id name to tack all the runs 
-    run_id = f"{args.exp_name}__lvl{args.info_exchange_lvl}__{u_env.NUM_UAV}__{args.seed}__{int(time.time())}"
+u_env = UAVenv()
+GRID_SIZE = u_env.GRID_SIZE
+NUM_UAV = u_env.NUM_UAV
+NUM_USER = u_env.NUM_USER
+num_episode = 900
+num_epochs = 100
+discount_factor = 0.95
+alpha = 0.6
+batch_size = 512
+update_rate = 10  #50
+dnn_epoch = 1
+epsilon = 0.1
+epsilon_min = 0.1
+epsilon_decay = 1
+random.seed(SEED)
 
     ## The whole problem of no convergence and no oscillation was dues to really low learning rate, as a result it was working 
     ## really slowly as a result it was taking way to long to converge to more optimal position
@@ -303,14 +316,53 @@ if __name__ == "__main__":
             # writer.add_figure("images/uav_users", figure, i_episode)
             writer.add_scalar("charts/connected_users_test", sum(temp_data[4]))
 
-            print(drone_act_list)
-            print("Number of user connected in ",i_episode," episode is: ", temp_data[4])
-            print("Total user connected in ",i_episode," episode is: ", sum(temp_data[4]))
-    
-    def smooth(y, pts):
-        box = np.ones(pts)/pts
-        y_smooth = np.convolve(y, box, mode='same')
-        return y_smooth
+def smooth(y, pts):
+    box = np.ones(pts)/pts
+    y_smooth = np.convolve(y, box, mode='same')
+    return y_smooth
+
+## Save the data from the run as a file
+mdict = {'num_episode':range(0, num_episode),'episodic_reward': episode_reward}
+savemat(r'C:\Users\tripats\Documents\GitHub\Result\Run903\Learning_Rate_0.6\episodic_reward.mat', mdict)
+mdict_2 = {'num_episode':range(0, num_episode),'connected_user': episode_user_connected}
+savemat(r'C:\Users\tripats\Documents\GitHub\Result\Run903\Learning_Rate_0.6\connected_user.mat', mdict_2)
+
+for i in range(NUM_UAV):
+    dict_temp ={'Q_matrix': UAV_OB[i].Q}
+    savemat(r'C:\Users\tripats\Documents\GitHub\Result\Run903\Learning_Rate_0.4\Q_'+str(i)+'.mat', dict_temp)
+
+
+
+
+# Plot the accumulated reward vs episodes
+fig = plt.figure()
+plt.plot(range(0, num_episode), episode_reward)
+plt.xlabel("Episode")
+plt.ylabel("Episodic Reward")
+plt.title("Episode vs Episodic Reward")
+plt.show()
+fig = plt.figure()
+plt.plot(range(0, num_episode), episode_user_connected)
+plt.xlabel("Episode")
+plt.ylabel("Connected User in Episode")
+plt.title("Episode vs Connected User in Epsisode")
+plt.show()
+fig = plt.figure()
+smoothed = smooth(episode_reward, 10)
+plt.plot(range(0, num_episode-10), smoothed[0:len(smoothed)-10] )
+plt.xlabel("Episode")
+plt.ylabel("Episodic Reward")
+plt.title("Smoothed Epidode vs Episodic Reward")
+plt.show()
+fig = plt.figure()
+final_render(states_fin, "final")
+fig = plt.figure()
+final_render(best_state, "best")
+print(states_fin)
+print('Total Connected User in Final Stage', temp_data[4])
+print("Best State")
+print(best_state)
+print("Total Connected User (Best Outcome)", best_result)
 
     ##########################
     ####   Custom logs    ####

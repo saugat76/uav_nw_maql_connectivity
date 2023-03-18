@@ -242,16 +242,15 @@ class UAVenv(gym.Env):
         ################################################################
         ##     Opt.1  No. of User Connected as Indiviudal Reward      ##
         ################################################################
-        if info_exchange_lvl == 1 or info_exchange_lvl == 4:
-            sum_user_assoc = np.sum(user_asso_flag, axis = 1)
-            reward_solo = np.zeros(np.size(sum_user_assoc), dtype="float32")
-            for k in range(self.NUM_UAV):
-                if self.flag[k] != 0:
-                    reward_solo[k] = np.copy(sum_user_assoc[k] - 2)
-                    isDone = True
-                else:
-                    reward_solo[k] = np.copy(sum_user_assoc[k]) 
-            reward = np.copy(reward_solo)
+        sum_user_assoc = np.sum(user_asso_flag, axis = 1)
+        reward_solo = np.zeros(np.size(sum_user_assoc), dtype="float32")
+        for k in range(self.NUM_UAV):
+            if self.flag[k] != 0:
+                reward_solo[k] = np.copy(sum_user_assoc[k] - 2)
+                isDone = True
+            else:
+                reward_solo[k] = np.copy(sum_user_assoc[k]) 
+        reward = np.copy(reward_solo)
 
         #############################################################################################
         ##     Opt.2  No. of User Connected as Indiviudal Reward with Penalty Over Buffer Area     ##

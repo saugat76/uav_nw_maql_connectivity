@@ -69,10 +69,10 @@ u_env = UAVenv()
 GRID_SIZE = u_env.GRID_SIZE
 NUM_UAV = u_env.NUM_UAV
 NUM_USER = u_env.NUM_USER
-num_episode = 800
+num_episode = 900
 num_epochs = 100
 discount_factor = 0.95
-alpha = 0.5
+alpha = 0.6
 batch_size = 512
 update_rate = 10  #50
 dnn_epoch = 1
@@ -182,9 +182,15 @@ def smooth(y, pts):
 
 ## Save the data from the run as a file
 mdict = {'num_episode':range(0, num_episode),'episodic_reward': episode_reward}
-savemat(r'C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\Result\Run002\Position Information with Distance Penalty - Level 3\episodic_reward.mat', mdict)
+savemat(r'C:\Users\tripats\Documents\GitHub\Result\Run903\Learning_Rate_0.6\episodic_reward.mat', mdict)
 mdict_2 = {'num_episode':range(0, num_episode),'connected_user': episode_user_connected}
-savemat(r'C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\Result\Run002\Position Information with Distance Penalty - Level 3\connected_user.mat', mdict_2)
+savemat(r'C:\Users\tripats\Documents\GitHub\Result\Run903\Learning_Rate_0.6\connected_user.mat', mdict_2)
+
+for i in range(NUM_UAV):
+    dict_temp ={'Q_matrix': UAV_OB[i].Q}
+    savemat(r'C:\Users\tripats\Documents\GitHub\Result\Run903\Learning_Rate_0.4\Q_'+str(i)+'.mat', dict_temp)
+
+
 
 
 # Plot the accumulated reward vs episodes

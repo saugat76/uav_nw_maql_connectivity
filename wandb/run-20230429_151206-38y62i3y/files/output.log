@@ -1,0 +1,6 @@
+
+0
+Traceback (most recent call last):
+  File "C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\main.py", line 270, in <module>
+    writer.add_scalar("params/learning_rate", UAV_OB[1].learning_rate, i_episode )
+AttributeError: 'Q_Learning' object has no attribute 'learning_rate'

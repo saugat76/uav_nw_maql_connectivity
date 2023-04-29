@@ -1,0 +1,8 @@
+
+0
+TypeError: only size-1 arrays can be converted to Python scalars
+The above exception was the direct cause of the following exception:
+Traceback (most recent call last):
+  File "C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\main.py", line 230, in <module>
+    episode_user_connected[i_episode] += temp_data[4]
+ValueError: setting an array element with a sequence.

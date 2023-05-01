@@ -84,7 +84,7 @@ tensorboard-plugin-customizable-plots==1.1.1
 tensorboard-plugin-wit==1.8.1
 tensorboard==2.8.0
 tensorflow-estimator==2.8.0
-tensorflow==2.8.2
+tensorflow==2.11.1
 termcolor==2.1.0
 torch==1.12.1
 torchaudio==0.12.1

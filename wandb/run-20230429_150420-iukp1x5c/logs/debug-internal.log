@@ -1,0 +1,228 @@
+2023-04-29 15:04:20,165 INFO    StreamThr :8868 [internal.py:wandb_internal():86] W&B internal server running at pid: 8868, started at: 2023-04-29 15:04:20.164656
+2023-04-29 15:04:20,167 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: status
+2023-04-29 15:04:20,171 INFO    WriterThread:8868 [datastore.py:open_for_write():85] open: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\run-iukp1x5c.wandb
+2023-04-29 15:04:20,172 DEBUG   SenderThread:8868 [sender.py:send():375] send: header
+2023-04-29 15:04:20,409 DEBUG   SenderThread:8868 [sender.py:send():375] send: run
+2023-04-29 15:04:20,754 INFO    SenderThread:8868 [dir_watcher.py:__init__():219] watching files in: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files
+2023-04-29 15:04:20,754 INFO    SenderThread:8868 [sender.py:_start_run_threads():1124] run started: iukp1x5c with start time 1682795060.163659
+2023-04-29 15:04:20,759 DEBUG   SenderThread:8868 [sender.py:send_request():402] send_request: summary_record
+2023-04-29 15:04:20,759 INFO    SenderThread:8868 [sender.py:_save_file():1378] saving file wandb-summary.json with policy end
+2023-04-29 15:04:20,759 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: check_version
+2023-04-29 15:04:20,759 DEBUG   SenderThread:8868 [sender.py:send_request():402] send_request: check_version
+2023-04-29 15:04:20,917 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: run_start
+2023-04-29 15:04:20,943 DEBUG   HandlerThread:8868 [system_info.py:__init__():31] System info init
+2023-04-29 15:04:20,943 DEBUG   HandlerThread:8868 [system_info.py:__init__():46] System info init done
+2023-04-29 15:04:20,943 INFO    HandlerThread:8868 [system_monitor.py:start():181] Starting system monitor
+2023-04-29 15:04:20,943 INFO    SystemMonitor:8868 [system_monitor.py:_start():145] Starting system asset monitoring threads
+2023-04-29 15:04:20,943 INFO    HandlerThread:8868 [system_monitor.py:probe():201] Collecting system info
+2023-04-29 15:04:20,948 INFO    SystemMonitor:8868 [interfaces.py:start():190] Started cpu monitoring
+2023-04-29 15:04:20,948 INFO    SystemMonitor:8868 [interfaces.py:start():190] Started disk monitoring
+2023-04-29 15:04:20,948 INFO    SystemMonitor:8868 [interfaces.py:start():190] Started gpu monitoring
+2023-04-29 15:04:20,958 INFO    SystemMonitor:8868 [interfaces.py:start():190] Started memory monitoring
+2023-04-29 15:04:20,971 INFO    SystemMonitor:8868 [interfaces.py:start():190] Started network monitoring
+2023-04-29 15:04:20,979 DEBUG   HandlerThread:8868 [system_info.py:probe():195] Probing system
+2023-04-29 15:04:20,979 DEBUG   HandlerThread:8868 [system_info.py:_probe_git():180] Probing git
+2023-04-29 15:04:20,984 ERROR   gpu       :8868 [interfaces.py:monitor():144] Failed to sample metric: Not Supported
+2023-04-29 15:04:21,082 DEBUG   HandlerThread:8868 [system_info.py:_probe_git():188] Probing git done
+2023-04-29 15:04:21,083 DEBUG   HandlerThread:8868 [system_info.py:probe():240] Probing system done
+2023-04-29 15:04:21,083 DEBUG   HandlerThread:8868 [system_monitor.py:probe():210] {'os': 'Windows-10-10.0.19044-SP0', 'python': '3.10.4', 'heartbeatAt': '2023-04-29T19:04:20.979716', 'startedAt': '2023-04-29T19:04:20.140736', 'docker': None, 'cuda': None, 'args': ('--info-exchange-lvl', '1', '--num-episode', '450', '--wandb-track', 'True', '--learning-rate', '0.00035'), 'state': 'running', 'program': 'C:\\Users\\tripats\\Documents\\GitHub\\UAV_Subband_Allocation_QLearning\\main.py', 'codePath': 'main.py', 'git': {'remote': 'https://github.com/saugat76/UAV_Subband_Allocation_QLearning.git', 'commit': '932873f0a1c8f0bdc5f4a4714f51ad0f42273cf6'}, 'email': 'saugat.tripathi76@gmail.com', 'root': 'C:/Users/tripats/Documents/GitHub/UAV_Subband_Allocation_QLearning', 'host': 'CEC-ZHANGR43776', 'username': 'tripats', 'executable': 'C:\\Users\\tripats\\.conda\\envs\\uavenv\\python.exe', 'cpu_count': 8, 'cpu_count_logical': 16, 'cpu_freq': {'current': 2496.0, 'min': 0.0, 'max': 2496.0}, 'cpu_freq_per_core': [{'current': 2496.0, 'min': 0.0, 'max': 2496.0}], 'disk': {'total': 943.7177696228027, 'used': 209.65411376953125}, 'gpu': 'NVIDIA RTX A5000 Laptop GPU', 'gpu_count': 1, 'gpu_devices': [{'name': 'NVIDIA RTX A5000 Laptop GPU', 'memory_total': 17179869184}], 'memory': {'total': 63.204471588134766}}
+2023-04-29 15:04:21,083 INFO    HandlerThread:8868 [system_monitor.py:probe():211] Finished collecting system info
+2023-04-29 15:04:21,083 INFO    HandlerThread:8868 [system_monitor.py:probe():214] Publishing system info
+2023-04-29 15:04:21,083 DEBUG   HandlerThread:8868 [system_info.py:_save_pip():51] Saving list of pip packages installed into the current environment
+2023-04-29 15:04:21,084 DEBUG   HandlerThread:8868 [system_info.py:_save_pip():67] Saving pip packages done
+2023-04-29 15:04:21,084 DEBUG   HandlerThread:8868 [system_info.py:_save_conda():74] Saving list of conda packages installed into the current environment
+2023-04-29 15:04:21,086 ERROR   HandlerThread:8868 [system_info.py:_save_conda():85] Error saving conda packages: [WinError 2] The system cannot find the file specified
+Traceback (most recent call last):
+  File "C:\Users\tripats\.conda\envs\uavenv\lib\site-packages\wandb\sdk\internal\system\system_info.py", line 81, in _save_conda
+    subprocess.call(
+  File "C:\Users\tripats\.conda\envs\uavenv\lib\subprocess.py", line 345, in call
+    with Popen(*popenargs, **kwargs) as p:
+  File "C:\Users\tripats\.conda\envs\uavenv\lib\subprocess.py", line 966, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "C:\Users\tripats\.conda\envs\uavenv\lib\subprocess.py", line 1435, in _execute_child
+    hp, ht, pid, tid = _winapi.CreateProcess(executable, args,
+FileNotFoundError: [WinError 2] The system cannot find the file specified
+2023-04-29 15:04:21,087 DEBUG   HandlerThread:8868 [system_info.py:_save_conda():86] Saving conda packages done
+2023-04-29 15:04:21,087 DEBUG   HandlerThread:8868 [system_info.py:_save_code():89] Saving code
+2023-04-29 15:04:21,139 DEBUG   HandlerThread:8868 [system_info.py:_save_code():110] Saving code done
+2023-04-29 15:04:21,139 DEBUG   HandlerThread:8868 [system_info.py:_save_patches():127] Saving git patches
+2023-04-29 15:04:21,677 DEBUG   HandlerThread:8868 [system_info.py:_save_patches():169] Saving git patches done
+2023-04-29 15:04:21,678 INFO    HandlerThread:8868 [system_monitor.py:probe():216] Finished publishing system info
+2023-04-29 15:04:21,687 DEBUG   SenderThread:8868 [sender.py:send():375] send: files
+2023-04-29 15:04:21,688 INFO    SenderThread:8868 [sender.py:_save_file():1378] saving file wandb-metadata.json with policy now
+2023-04-29 15:04:21,688 INFO    SenderThread:8868 [sender.py:_save_file():1378] saving file code\main.py with policy now
+2023-04-29 15:04:21,688 INFO    SenderThread:8868 [sender.py:_save_file():1378] saving file diff.patch with policy now
+2023-04-29 15:04:21,688 INFO    SenderThread:8868 [sender.py:_save_file():1378] saving file upstream_diff_dde86ef47e1d4fd22ea35e99093dc4764c6d024c.patch with policy now
+2023-04-29 15:04:21,697 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: stop_status
+2023-04-29 15:04:21,698 DEBUG   SenderThread:8868 [sender.py:send_request():402] send_request: stop_status
+2023-04-29 15:04:21,699 INFO    HandlerThread:8868 [handler.py:handle_tbrecord():750] handling tbrecord: tbrecord {
+  log_dir: "runs/maql_uav__lvl1__5__1__1682795057"
+  save: true
+}
+control {
+  relay_id: "89164cf4da2c4341a2fce27f613aea41"
+}
+_info {
+  stream_id: "iukp1x5c"
+}
+
+2023-04-29 15:04:21,710 DEBUG   HandlerThread:8868 [config_util.py:dict_from_config_file():104] no default config file found in config-defaults.yaml
+2023-04-29 15:04:21,761 INFO    Thread-16 :8868 [dir_watcher.py:_on_file_created():278] file/dir created: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\wandb-summary.json
+2023-04-29 15:04:21,762 INFO    Thread-16 :8868 [dir_watcher.py:_on_file_created():278] file/dir created: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\upstream_diff_dde86ef47e1d4fd22ea35e99093dc4764c6d024c.patch
+2023-04-29 15:04:21,763 INFO    Thread-16 :8868 [dir_watcher.py:_on_file_created():278] file/dir created: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\code\main.py
+2023-04-29 15:04:21,766 INFO    Thread-16 :8868 [dir_watcher.py:_on_file_created():278] file/dir created: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\conda-environment.yaml
+2023-04-29 15:04:21,766 INFO    Thread-16 :8868 [dir_watcher.py:_on_file_created():278] file/dir created: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\diff.patch
+2023-04-29 15:04:21,766 INFO    Thread-16 :8868 [dir_watcher.py:_on_file_created():278] file/dir created: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\requirements.txt
+2023-04-29 15:04:21,766 INFO    Thread-16 :8868 [dir_watcher.py:_on_file_created():278] file/dir created: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\wandb-metadata.json
+2023-04-29 15:04:21,766 INFO    Thread-16 :8868 [dir_watcher.py:_on_file_created():278] file/dir created: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\code
+2023-04-29 15:04:21,778 DEBUG   SenderThread:8868 [sender.py:send():375] send: telemetry
+2023-04-29 15:04:21,784 INFO    wandb-upload_1:8868 [upload_job.py:push():117] Skipped uploading C:\Users\tripats\AppData\Local\Temp\tmpmqryr_uawandb\8h15el59-code/main.py
+2023-04-29 15:04:21,792 DEBUG   SenderThread:8868 [sender.py:send():375] send: tbrecord
+2023-04-29 15:04:21,842 DEBUG   SenderThread:8868 [sender.py:send():375] send: exit
+2023-04-29 15:04:21,842 INFO    SenderThread:8868 [sender.py:send_exit():598] handling exit code: 1
+2023-04-29 15:04:21,843 INFO    SenderThread:8868 [sender.py:send_exit():600] handling runtime: 0
+2023-04-29 15:04:21,844 INFO    SenderThread:8868 [sender.py:_save_file():1378] saving file wandb-summary.json with policy end
+2023-04-29 15:04:21,844 INFO    SenderThread:8868 [sender.py:send_exit():606] send defer
+2023-04-29 15:04:21,844 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: defer
+2023-04-29 15:04:21,845 INFO    HandlerThread:8868 [handler.py:handle_request_defer():170] handle defer: 0
+2023-04-29 15:04:21,845 DEBUG   SenderThread:8868 [sender.py:send_request():402] send_request: defer
+2023-04-29 15:04:21,845 INFO    SenderThread:8868 [sender.py:send_request_defer():622] handle sender defer: 0
+2023-04-29 15:04:21,845 INFO    SenderThread:8868 [sender.py:transition_state():626] send defer: 1
+2023-04-29 15:04:21,846 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: defer
+2023-04-29 15:04:21,846 INFO    HandlerThread:8868 [handler.py:handle_request_defer():170] handle defer: 1
+2023-04-29 15:04:21,846 DEBUG   SenderThread:8868 [sender.py:send_request():402] send_request: defer
+2023-04-29 15:04:21,846 INFO    SenderThread:8868 [sender.py:send_request_defer():622] handle sender defer: 1
+2023-04-29 15:04:21,846 INFO    SenderThread:8868 [sender.py:transition_state():626] send defer: 2
+2023-04-29 15:04:21,846 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: defer
+2023-04-29 15:04:21,846 INFO    HandlerThread:8868 [handler.py:handle_request_defer():170] handle defer: 2
+2023-04-29 15:04:21,847 INFO    HandlerThread:8868 [system_monitor.py:finish():190] Stopping system monitor
+2023-04-29 15:04:21,847 DEBUG   SystemMonitor:8868 [system_monitor.py:_start():159] Starting system metrics aggregation loop
+2023-04-29 15:04:21,847 INFO    HandlerThread:8868 [interfaces.py:finish():202] Joined cpu monitor
+2023-04-29 15:04:21,855 DEBUG   SystemMonitor:8868 [system_monitor.py:_start():166] Finished system metrics aggregation loop
+2023-04-29 15:04:21,855 INFO    HandlerThread:8868 [interfaces.py:finish():202] Joined disk monitor
+2023-04-29 15:04:21,855 DEBUG   SystemMonitor:8868 [system_monitor.py:_start():170] Publishing last batch of metrics
+2023-04-29 15:04:21,894 INFO    HandlerThread:8868 [interfaces.py:finish():202] Joined gpu monitor
+2023-04-29 15:04:21,895 INFO    HandlerThread:8868 [interfaces.py:finish():202] Joined memory monitor
+2023-04-29 15:04:21,895 INFO    HandlerThread:8868 [interfaces.py:finish():202] Joined network monitor
+2023-04-29 15:04:21,896 DEBUG   SenderThread:8868 [sender.py:send_request():402] send_request: defer
+2023-04-29 15:04:21,896 INFO    SenderThread:8868 [sender.py:send_request_defer():622] handle sender defer: 2
+2023-04-29 15:04:21,896 INFO    SenderThread:8868 [sender.py:transition_state():626] send defer: 3
+2023-04-29 15:04:21,896 DEBUG   SenderThread:8868 [sender.py:send():375] send: stats
+2023-04-29 15:04:21,896 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: defer
+2023-04-29 15:04:21,897 INFO    HandlerThread:8868 [handler.py:handle_request_defer():170] handle defer: 3
+2023-04-29 15:04:21,899 DEBUG   SenderThread:8868 [sender.py:send_request():402] send_request: defer
+2023-04-29 15:04:21,899 INFO    SenderThread:8868 [sender.py:send_request_defer():622] handle sender defer: 3
+2023-04-29 15:04:21,899 INFO    SenderThread:8868 [sender.py:transition_state():626] send defer: 4
+2023-04-29 15:04:21,900 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: defer
+2023-04-29 15:04:21,900 INFO    HandlerThread:8868 [handler.py:handle_request_defer():170] handle defer: 4
+2023-04-29 15:04:22,101 INFO    wandb-upload_3:8868 [upload_job.py:push():137] Uploaded file C:\Users\tripats\AppData\Local\Temp\tmpmqryr_uawandb\q0ezcyws-upstream_diff_dde86ef47e1d4fd22ea35e99093dc4764c6d024c.patch
+2023-04-29 15:04:22,106 INFO    wandb-upload_0:8868 [upload_job.py:push():137] Uploaded file C:\Users\tripats\AppData\Local\Temp\tmpmqryr_uawandb\eunrf9m9-wandb-metadata.json
+2023-04-29 15:04:22,156 INFO    wandb-upload_2:8868 [upload_job.py:push():137] Uploaded file C:\Users\tripats\AppData\Local\Temp\tmpmqryr_uawandb\nzktp45i-diff.patch
+2023-04-29 15:04:22,774 INFO    Thread-16 :8868 [dir_watcher.py:_on_file_modified():295] file/dir modified: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\wandb-summary.json
+2023-04-29 15:04:22,774 INFO    Thread-16 :8868 [dir_watcher.py:_on_file_created():278] file/dir created: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\output.log
+2023-04-29 15:04:23,878 DEBUG   Thread-42 (_thread_except_body):8868 [tb_watcher.py:_process_events():274] Encountered tensorboard directory watcher error: [WinError 1314] A required privilege is not held by the client: 'C:\\Users\\tripats\\Documents\\GitHub\\UAV_Subband_Allocation_QLearning\\runs\\maql_uav__lvl1__5__1__1682795057\\events.out.tfevents.1682795061.CEC-ZHANGR43776.28932.0' -> 'C:\\Users\\tripats\\Documents\\GitHub\\UAV_Subband_Allocation_QLearning\\wandb\\run-20230429_150420-iukp1x5c\\files\\events.out.tfevents.1682795061.CEC-ZHANGR43776.28932.0'
+2023-04-29 15:04:24,806 INFO    Thread-16 :8868 [dir_watcher.py:_on_file_modified():295] file/dir modified: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\output.log
+2023-04-29 15:04:34,837 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: poll_exit
+2023-04-29 15:04:34,837 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: status_report
+2023-04-29 15:04:34,837 DEBUG   SenderThread:8868 [sender.py:send_request():402] send_request: defer
+2023-04-29 15:04:34,837 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: keepalive
+2023-04-29 15:04:34,837 INFO    SenderThread:8868 [sender.py:send_request_defer():622] handle sender defer: 4
+2023-04-29 15:04:34,837 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: status_report
+2023-04-29 15:04:34,837 INFO    SenderThread:8868 [sender.py:transition_state():626] send defer: 5
+2023-04-29 15:04:34,837 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: keepalive
+2023-04-29 15:04:34,842 DEBUG   SenderThread:8868 [sender.py:send_request():402] send_request: poll_exit
+2023-04-29 15:04:34,842 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: defer
+2023-04-29 15:04:34,842 INFO    HandlerThread:8868 [handler.py:handle_request_defer():170] handle defer: 5
+2023-04-29 15:04:34,842 DEBUG   SenderThread:8868 [sender.py:send():375] send: summary
+2023-04-29 15:04:34,842 INFO    SenderThread:8868 [sender.py:_save_file():1378] saving file wandb-summary.json with policy end
+2023-04-29 15:04:34,842 DEBUG   SenderThread:8868 [sender.py:send_request():402] send_request: defer
+2023-04-29 15:04:34,842 INFO    SenderThread:8868 [sender.py:send_request_defer():622] handle sender defer: 5
+2023-04-29 15:04:34,842 INFO    SenderThread:8868 [sender.py:transition_state():626] send defer: 6
+2023-04-29 15:04:34,842 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: defer
+2023-04-29 15:04:34,842 INFO    HandlerThread:8868 [handler.py:handle_request_defer():170] handle defer: 6
+2023-04-29 15:04:34,842 DEBUG   SenderThread:8868 [sender.py:send_request():402] send_request: defer
+2023-04-29 15:04:34,842 INFO    SenderThread:8868 [sender.py:send_request_defer():622] handle sender defer: 6
+2023-04-29 15:04:34,847 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: status_report
+2023-04-29 15:04:34,900 INFO    Thread-16 :8868 [dir_watcher.py:_on_file_modified():295] file/dir modified: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\wandb-summary.json
+2023-04-29 15:04:34,975 INFO    SenderThread:8868 [sender.py:transition_state():626] send defer: 7
+2023-04-29 15:04:34,975 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: defer
+2023-04-29 15:04:34,975 INFO    HandlerThread:8868 [handler.py:handle_request_defer():170] handle defer: 7
+2023-04-29 15:04:34,975 DEBUG   SenderThread:8868 [sender.py:send_request():402] send_request: defer
+2023-04-29 15:04:34,975 INFO    SenderThread:8868 [sender.py:send_request_defer():622] handle sender defer: 7
+2023-04-29 15:04:35,901 INFO    Thread-16 :8868 [dir_watcher.py:_on_file_modified():295] file/dir modified: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\config.yaml
+2023-04-29 15:04:37,910 INFO    SenderThread:8868 [sender.py:transition_state():626] send defer: 8
+2023-04-29 15:04:37,910 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: defer
+2023-04-29 15:04:37,910 INFO    HandlerThread:8868 [handler.py:handle_request_defer():170] handle defer: 8
+2023-04-29 15:04:37,910 DEBUG   SenderThread:8868 [sender.py:send_request():402] send_request: defer
+2023-04-29 15:04:37,915 INFO    Thread-16 :8868 [dir_watcher.py:_on_file_modified():295] file/dir modified: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\output.log
+2023-04-29 15:04:37,915 INFO    SenderThread:8868 [sender.py:send_request_defer():622] handle sender defer: 8
+2023-04-29 15:04:37,930 INFO    SenderThread:8868 [sender.py:transition_state():626] send defer: 9
+2023-04-29 15:04:37,934 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: defer
+2023-04-29 15:04:37,934 INFO    HandlerThread:8868 [handler.py:handle_request_defer():170] handle defer: 9
+2023-04-29 15:04:37,934 DEBUG   SenderThread:8868 [sender.py:send():375] send: artifact
+2023-04-29 15:04:37,972 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: keepalive
+2023-04-29 15:04:38,583 INFO    wandb-upload_3:8868 [upload_job.py:push():95] Uploaded file C:\Users\tripats\AppData\Local\wandb\wandb\artifacts\staging\tmpqx8wl5cg
+2023-04-29 15:04:38,583 INFO    wandb-upload_1:8868 [upload_job.py:push():95] Uploaded file C:\Users\tripats\AppData\Local\wandb\wandb\artifacts\staging\tmp3yxqcpy2
+2023-04-29 15:04:38,594 INFO    wandb-upload_0:8868 [upload_job.py:push():95] Uploaded file C:\Users\tripats\AppData\Local\wandb\wandb\artifacts\staging\tmpp5edif7z
+2023-04-29 15:04:40,452 INFO    SenderThread:8868 [sender.py:send_artifact():1474] sent artifact job-https___github.com_saugat76_UAV_Subband_Allocation_QLearning.git_main.py - {'id': 'QXJ0aWZhY3Q6NDM3MDA2Mzkw', 'digest': '5a510413432b65dd3d4aa97bafa76631', 'state': 'PENDING', 'aliases': [], 'artifactSequence': {'id': 'QXJ0aWZhY3RDb2xsZWN0aW9uOjY1NDg0MzI4', 'latestArtifact': None}, 'version': 'latest'}
+2023-04-29 15:04:40,452 DEBUG   SenderThread:8868 [sender.py:send_request():402] send_request: defer
+2023-04-29 15:04:40,452 INFO    SenderThread:8868 [sender.py:send_request_defer():622] handle sender defer: 9
+2023-04-29 15:04:40,452 INFO    SenderThread:8868 [dir_watcher.py:finish():365] shutting down directory watcher
+2023-04-29 15:04:40,940 INFO    SenderThread:8868 [dir_watcher.py:finish():395] scan: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files
+2023-04-29 15:04:40,945 INFO    SenderThread:8868 [dir_watcher.py:finish():409] scan save: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\conda-environment.yaml conda-environment.yaml
+2023-04-29 15:04:40,945 INFO    SenderThread:8868 [dir_watcher.py:finish():409] scan save: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\config.yaml config.yaml
+2023-04-29 15:04:40,945 INFO    SenderThread:8868 [dir_watcher.py:finish():409] scan save: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\diff.patch diff.patch
+2023-04-29 15:04:40,945 INFO    SenderThread:8868 [dir_watcher.py:finish():409] scan save: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\output.log output.log
+2023-04-29 15:04:40,950 INFO    SenderThread:8868 [dir_watcher.py:finish():409] scan save: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\requirements.txt requirements.txt
+2023-04-29 15:04:40,950 INFO    SenderThread:8868 [dir_watcher.py:finish():409] scan save: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\upstream_diff_dde86ef47e1d4fd22ea35e99093dc4764c6d024c.patch upstream_diff_dde86ef47e1d4fd22ea35e99093dc4764c6d024c.patch
+2023-04-29 15:04:40,950 INFO    SenderThread:8868 [dir_watcher.py:finish():409] scan save: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\wandb-metadata.json wandb-metadata.json
+2023-04-29 15:04:40,950 INFO    SenderThread:8868 [dir_watcher.py:finish():409] scan save: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\wandb-summary.json wandb-summary.json
+2023-04-29 15:04:40,956 INFO    SenderThread:8868 [dir_watcher.py:finish():409] scan save: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\code\main.py code\main.py
+2023-04-29 15:04:40,956 INFO    SenderThread:8868 [sender.py:transition_state():626] send defer: 10
+2023-04-29 15:04:40,956 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: defer
+2023-04-29 15:04:40,956 INFO    HandlerThread:8868 [handler.py:handle_request_defer():170] handle defer: 10
+2023-04-29 15:04:40,956 DEBUG   SenderThread:8868 [sender.py:send_request():402] send_request: defer
+2023-04-29 15:04:40,956 INFO    SenderThread:8868 [sender.py:send_request_defer():622] handle sender defer: 10
+2023-04-29 15:04:40,956 INFO    SenderThread:8868 [file_pusher.py:finish():168] shutting down file pusher
+2023-04-29 15:04:41,276 INFO    wandb-upload_3:8868 [upload_job.py:push():137] Uploaded file C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\wandb-summary.json
+2023-04-29 15:04:41,280 INFO    wandb-upload_0:8868 [upload_job.py:push():137] Uploaded file C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\requirements.txt
+2023-04-29 15:04:41,280 INFO    wandb-upload_2:8868 [upload_job.py:push():137] Uploaded file C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\config.yaml
+2023-04-29 15:04:41,324 INFO    wandb-upload_1:8868 [upload_job.py:push():137] Uploaded file C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\files\output.log
+2023-04-29 15:04:41,526 INFO    Thread-15 (_thread_body):8868 [sender.py:transition_state():626] send defer: 11
+2023-04-29 15:04:41,526 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: defer
+2023-04-29 15:04:41,526 INFO    HandlerThread:8868 [handler.py:handle_request_defer():170] handle defer: 11
+2023-04-29 15:04:41,528 DEBUG   SenderThread:8868 [sender.py:send_request():402] send_request: defer
+2023-04-29 15:04:41,528 INFO    SenderThread:8868 [sender.py:send_request_defer():622] handle sender defer: 11
+2023-04-29 15:04:41,528 INFO    SenderThread:8868 [file_pusher.py:join():173] waiting for file pusher
+2023-04-29 15:04:41,528 INFO    SenderThread:8868 [sender.py:transition_state():626] send defer: 12
+2023-04-29 15:04:41,528 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: defer
+2023-04-29 15:04:41,528 INFO    HandlerThread:8868 [handler.py:handle_request_defer():170] handle defer: 12
+2023-04-29 15:04:41,528 DEBUG   SenderThread:8868 [sender.py:send_request():402] send_request: defer
+2023-04-29 15:04:41,528 INFO    SenderThread:8868 [sender.py:send_request_defer():622] handle sender defer: 12
+2023-04-29 15:04:41,738 INFO    SenderThread:8868 [sender.py:transition_state():626] send defer: 13
+2023-04-29 15:04:41,739 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: defer
+2023-04-29 15:04:41,739 INFO    HandlerThread:8868 [handler.py:handle_request_defer():170] handle defer: 13
+2023-04-29 15:04:41,740 DEBUG   SenderThread:8868 [sender.py:send_request():402] send_request: defer
+2023-04-29 15:04:41,740 INFO    SenderThread:8868 [sender.py:send_request_defer():622] handle sender defer: 13
+2023-04-29 15:04:41,740 INFO    SenderThread:8868 [sender.py:transition_state():626] send defer: 14
+2023-04-29 15:04:41,741 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: defer
+2023-04-29 15:04:41,742 INFO    HandlerThread:8868 [handler.py:handle_request_defer():170] handle defer: 14
+2023-04-29 15:04:41,743 DEBUG   SenderThread:8868 [sender.py:send():375] send: final
+2023-04-29 15:04:41,744 DEBUG   SenderThread:8868 [sender.py:send():375] send: footer
+2023-04-29 15:04:41,744 DEBUG   SenderThread:8868 [sender.py:send_request():402] send_request: defer
+2023-04-29 15:04:41,744 INFO    SenderThread:8868 [sender.py:send_request_defer():622] handle sender defer: 14
+2023-04-29 15:04:41,745 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: poll_exit
+2023-04-29 15:04:41,745 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: server_info
+2023-04-29 15:04:41,745 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: get_summary
+2023-04-29 15:04:41,745 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: sampled_history
+2023-04-29 15:04:41,746 DEBUG   SenderThread:8868 [sender.py:send_request():402] send_request: poll_exit
+2023-04-29 15:04:41,746 DEBUG   SenderThread:8868 [sender.py:send_request():402] send_request: server_info
+2023-04-29 15:04:41,786 INFO    MainThread:8868 [wandb_run.py:_footer_history_summary_info():3476] rendering history
+2023-04-29 15:04:41,786 INFO    MainThread:8868 [wandb_run.py:_footer_history_summary_info():3508] rendering summary
+2023-04-29 15:04:41,786 INFO    MainThread:8868 [wandb_run.py:_footer_sync_info():3434] logging synced files
+2023-04-29 15:04:41,788 DEBUG   HandlerThread:8868 [handler.py:handle_request():144] handle_request: shutdown
+2023-04-29 15:04:41,789 INFO    HandlerThread:8868 [handler.py:finish():845] shutting down handler
+2023-04-29 15:04:42,756 INFO    WriterThread:8868 [datastore.py:close():298] close: C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\wandb\run-20230429_150420-iukp1x5c\run-iukp1x5c.wandb
+2023-04-29 15:04:42,790 INFO    SenderThread:8868 [sender.py:finish():1550] shutting down sender
+2023-04-29 15:04:42,790 INFO    SenderThread:8868 [file_pusher.py:finish():168] shutting down file pusher
+2023-04-29 15:04:42,790 INFO    SenderThread:8868 [file_pusher.py:join():173] waiting for file pusher

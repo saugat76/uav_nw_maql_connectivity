@@ -1,0 +1,689 @@
+diff --git a/__pycache__/uav_env.cpython-310.pyc b/__pycache__/uav_env.cpython-310.pyc
+index 8deb333..eb42fb3 100644
+Binary files a/__pycache__/uav_env.cpython-310.pyc and b/__pycache__/uav_env.cpython-310.pyc differ
+diff --git a/main.py b/main.py
+index 1375eac..0bd00a0 100644
+--- a/main.py
++++ b/main.py
+@@ -9,6 +9,12 @@ from uav_env import UAVenv
+ from misc import final_render
+ import os
+ import math
++import time 
++from distutils.util import strtobool
++from torch.utils.tensorboard import SummaryWriter
++import wandb
++import argparse
++
+ 
+ os.chdir = ("")
+ 
+@@ -16,6 +22,54 @@ SEED = 1
+ random.seed(SEED)
+ np.random.seed(SEED)
+ 
++# Define arg parser with default values
++def parse_args():
++    parser = argparse.ArgumentParser()
++    # Arguments for the experiments name / run / setup and Weights and Biases
++    parser.add_argument("--exp-name", type=str, default="maql_uav", help="name of this experiment")
++    parser.add_argument("--seed", type=int, default=1, help="seed of experiment to ensure reproducibility")
++    parser.add_argument("--torch-deterministic", type= lambda x:bool(strtobool(x)), default=True, nargs="?", const=True, help="if toggeled, 'torch-backends.cudnn.deterministic=False'")
++    parser.add_argument("--cuda", type=lambda x: bool(strtobool(x)), default=True, nargs="?", const=True, help="if toggled, cuda will be enabled by default")
++    parser.add_argument("--wandb-track", type=lambda x: bool(strtobool(x)), default=False, help="if toggled, this experiment will be tracked with Weights and Biases project")
++    parser.add_argument("--wandb-name", type=str, default="UAV_Subband_Allocation_DQN_Pytorch", help="project name in Weight and Biases")
++    parser.add_argument("--wandb-entity", type=str, default= None, help="entity(team) for Weights and Biases project")
++
++    # Arguments specific to the Algotithm used 
++    parser.add_argument("--env-id", type=str, default= "ma-custom-UAV-connectivity", help="id of developed custom environment")
++    parser.add_argument("--num-env", type=int, default=1, help="number of parallel environment")
++    parser.add_argument("--num-episode", type=int, default=351, help="number of episode, default value till the trainning is progressed")
++    parser.add_argument("--num-steps", type=int, default= 100, help="number of steps/epoch use in every episode")
++    parser.add_argument("--learning-rate", type=float, default= 3.5e-4, help="learning rate of the dql alggorithm used by every agent")
++    parser.add_argument("--gamma", type=float, default= 0.95, help="discount factor used for the calculation of q-value, can prirotize future reward if kept high")
++    parser.add_argument("--batch-size", type=int, default= 512, help="batch sample size used in a trainning batch")
++    parser.add_argument("--epsilon", type=float, default= 0.1, help="epsilon to set the eploration vs exploitation")
++    parser.add_argument("--update-rate", type=int, default= 10, help="steps at which the target network updates it's parameter from main network")
++    parser.add_argument("--buffer-size", type=int, default=125000, help="size of replay buffer of each individual agent")
++    parser.add_argument("--epsilon-min", type=float, default=0.1, help="maximum value of exploration-exploitation paramter, only used when epsilon deacay is set to True")
++    parser.add_argument("--epsilon-decay", type=lambda x: bool(strtobool(x)), default=False, help="epsilon decay is used, explotation is prioritized at early episodes and on later epsidoe exploitation is prioritized, by default set to False")
++    parser.add_argument("--epsilon-decay-steps", type=int, default=1, help="set the rate at which is the epsilon is deacyed, set value equates number of steps at which the epsilon reaches minimum")
++
++    # Environment specific arguments 
++    parser.add_argument("--info-exchange-lvl", type=int, default=1, help="information exchange level between UAVs: 1 -> implicit, 2 -> reward, 3 -> position with distance penalty, 4 -> state")
++    # Arguments for used inside the wireless UAV based enviornment  
++    parser.add_argument("--num-user", type=int, default=100, help="number of user in defined environment")
++    parser.add_argument("--num-uav", type=int, default=5, help="number of uav for the defined environment")
++    parser.add_argument("--generate-user-distribution", type=lambda x: bool(strtobool(x)), default=False, help="if true generate a new user distribution, set true if changing number of users")
++    parser.add_argument("--carrier-freq", type=int, default=2, help="set the frequency of the carrier signal in GHz")
++    parser.add_argument("--coverage-xy", type=int, default=1000, help="set the length of target area (square)")
++    parser.add_argument("--uav-height", type=int, default=350, help="define the altitude for all uav")
++    parser.add_argument("--theta", type=int, default=60, help="angle of coverage for a uav in degree")
++    parser.add_argument("--bw-uav", type=float, default=4e6, help="actual bandwidth of the uav")
++    parser.add_argument("--bw-rb", type=float, default=180e3, help="bandwidth of a resource block")
++    parser.add_argument("--grid-space", type=int, default=100, help="seperating space for grid")
++    parser.add_argument("--uav-dis-th", type=int, default=1000, help="distance value that defines which uav agent share info")
++    parser.add_argument("--dist-pri-param", type=float, default=1/5, help="distance penalty priority parameter used in level 3 info exchange")
++    
++    args = parser.parse_args()
++
++    return args
++
++
+ class Q_Learning:
+     def __init__(self):
+         self.discount_factor = discount_factor
+@@ -64,158 +118,260 @@ class Q_Learning:
+         td_delta = td_target - self.Q[state[0], state[1], action]
+         self.Q[state[0], state[1], action] += self.alpha * td_delta
+ 
++if __name__ == "__main__":
++    args = parse_args()
++    u_env = UAVenv(args)
++    GRID_SIZE = u_env.GRID_SIZE
++    NUM_UAV = u_env.NUM_UAV
++    NUM_USER = u_env.NUM_USER
++    num_episode = args.num_episode
++    num_epochs = args.num_steps
++    discount_factor = args.gamma
++    alpha = args.learning_rate
++    batch_size = args.batch_size
++    update_rate = args.update_rate
++    epsilon = args.epsilon
++    epsilon_min = args.epsilon_min
++    epsilon_decay = args.epsilon_decay_steps
++    dnn_epoch = 1
+ 
+-u_env = UAVenv()
+-GRID_SIZE = u_env.GRID_SIZE
+-NUM_UAV = u_env.NUM_UAV
+-NUM_USER = u_env.NUM_USER
+-num_episode = 800
+-num_epochs = 100
+-discount_factor = 0.95
+-alpha = 0.05
+-batch_size = 512
+-update_rate = 10  #50
+-dnn_epoch = 1
+-epsilon = 0.1
+-epsilon_min = 0.1
+-epsilon_decay = 1
+-random.seed(SEED)
++    # Set the run id name to tack all the runs 
++    run_id = f"{args.exp_name}__lvl{args.info_exchange_lvl}__{u_env.NUM_UAV}__{args.seed}__{int(time.time())}"
+ 
+-## The whole problem of no convergence and no oscillation was dues to really low learning rate, as a result it was working 
+-## really slowly as a result it was taking way to long to converge to more optimal position
+-## Having a higher learning rate helped in this case 
++    ## The whole problem of no convergence and no oscillation was dues to really low learning rate, as a result it was working 
++    ## really slowly as a result it was taking way to long to converge to more optimal position
++    ## Having a higher learning rate helped in this case 
+ 
+-# Keeping track of the episode reward
+-episode_reward = np.zeros(num_episode)
+-episode_user_connected = np.zeros(num_episode)
++    # Set the seed value from arg parser to ensure reproducibility 
++    random.seed(args.seed)
++    np.random.seed(args.seed)
+ 
+-fig = plt.figure()
+-gs = GridSpec(1, 1, figure=fig)
+-ax1 = fig.add_subplot(gs[0:1, 0:1])
++    # If wandb tack is set to True // Track the training process, hyperparamters and results
++    if args.wandb_track:
++        wandb.init(
++            # Set the wandb project where this run will be logged
++            project=args.wandb_name,
++            entity=args.wandb_entity,
++            sync_tensorboard= True,
++            # track hyperparameters and run metadata
++            config=vars(args),
++            name= run_id,
++            save_code= True,
++        )
++    # Track everyruns inside run folder // Tensorboard files to keep track of the results
++    writer = SummaryWriter(f"runs/{run_id}")
++    # Store the hyper paramters used in run as a Scaler text inside the tensor board summary
++    writer.add_text(
++        "hyperparamaters", 
++        "|params|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}" for key, value in vars(args).items()]))
++    )
+ 
+-UAV_OB = [None, None, None, None, None]
++    # Store environment specific parameters
++    env_params = {'num_uav':NUM_UAV, 'num_user': NUM_USER, 'grid_size': GRID_SIZE, 'start_pos': str(u_env.state), 
++                      'coverage_xy':u_env.COVERAGE_XY, 'uav_height': u_env.UAV_HEIGHT, 'bw_uav': u_env.BW_UAV, 
++                      'bw_rb':u_env.BW_RB, 'actual_bw_uav':u_env.ACTUAL_BW_UAV, 'uav_dis_thres': u_env.UAV_DIST_THRS,
++                      'dist_penalty_pri': u_env.dis_penalty_pri}
++    writer.add_text(
++        "environment paramters", 
++        "|params|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}" for key, value in env_params.items()]))
++    )
+ 
+-for k in range(NUM_UAV):
+-            UAV_OB[k] = Q_Learning()
+-best_result = 0
++    # Initialize global step value
++    global_step = 0
+ 
+-fig = plt.figure()
+-gs = GridSpec(1, 1, figure=fig)
+-ax1 = fig.add_subplot(gs[0:1, 0:1])
++    # Keeping track of the episode reward
++    episode_reward = np.zeros(num_episode)
++    episode_user_connected = np.zeros(num_episode)
+ 
+-for i_episode in range(num_episode):
+-    print(i_episode)
++    # Keeping track of individual agents 
++    episode_reward_agent = np.zeros((NUM_UAV, 1))
+ 
+-    # Environment reset and get the states
+-    u_env.reset()
+ 
+-    # Get the initial states
+-    states = u_env.get_state()
+-    reward = np.zeros(NUM_UAV)
++    fig = plt.figure()
++    gs = GridSpec(1, 1, figure=fig)
++    ax1 = fig.add_subplot(gs[0:1, 0:1])
+ 
+-    
+-    for t in range(num_epochs):
+-        drone_act_list = []
+-
+-        # Determining the actions for all drones
+-        states_ten = states
+-        for k in range(NUM_UAV):
+-            state = states_ten[k, :].astype(int)
+-            action = UAV_OB[k].epsilon_greedy(state)
+-            drone_act_list.append(action)
+-
+-        # Find the rewards for the combined set of actions for the UAV
+-        temp_data = u_env.step(drone_act_list)
+-        reward = temp_data[1]
+-        done = temp_data[2]
+-        next_state = u_env.get_state()
+-
+-        # Calculation of the total episodic reward of all the UAVs 
+-        # Calculation of the total number of connected User for the combination of all UAVs
+-        episode_reward[i_episode] += sum(reward)
+-        episode_user_connected[i_episode] += temp_data[4]
+-
+-        for k in range(NUM_UAV):
+-            state = states_ten[k, :].astype(int)
+-            action = drone_act_list[k]
+-            next_sta = next_state[k, :]
+-            reward_ind = reward[k]
+-            # Info = (state, action, next_sta, next_act, reward_ind )
+-            info = [state, action, next_sta, reward_ind]
+-            UAV_OB[k].qlearning(info)
+-            
++    UAV_OB = []
+ 
+-        states = next_state
+-        
+-        # If done break from the loop (go to next episode)
+-        # if done:
+-        #     break
++    for k in range(NUM_UAV):
++                UAV_OB.append(Q_Learning())
++    best_result = 0
++
++    for i_episode in range(num_episode):
++        print(i_episode)
+ 
+-    if i_episode % 10 == 0:
+-        # Reset of the environment
++        # Environment reset and get the states
+         u_env.reset()
+-        # Get the states
+-        # Get the states
++
++        # Get the initial states
+         states = u_env.get_state()
+-        for t in range(100):
++        reward = np.zeros(NUM_UAV)
++
++        
++        for t in range(num_epochs):
+             drone_act_list = []
++
++            # Determining the actions for all drones
++            states_ten = states
+             for k in range(NUM_UAV):
+-                state = states[k,:].astype(int)
+-                best_next_action = np.argmax(UAV_OB[k].Q[state[0], state[1], :])
+-                drone_act_list.append(best_next_action)
+-            temp_data = u_env.step(drone_act_list)
++                state = states_ten[k, :].astype(int)
++                action = UAV_OB[k].epsilon_greedy(state)
++                drone_act_list.append(action)
++
++            # Find the rewards for the combined set of actions for the UAV
++            temp_data = u_env.step(drone_act_list, args.info_exchange_lvl)
++            reward = temp_data[1]
++            done = temp_data[2]
++            next_state = u_env.get_state()
++
++            for k in range(NUM_UAV):
++                state = states_ten[k, :].astype(int)
++                action = drone_act_list[k]
++                next_sta = next_state[k, :]
++                reward_ind = reward[k]
++                # Info = (state, action, next_sta, next_act, reward_ind )
++                info = [state, action, next_sta, reward_ind]
++                UAV_OB[k].qlearning(info)
++                
++            # Calculation of the total episodic reward of all the UAVs 
++            # Calculation of the total number of connected User for the combination of all UAVs
++            ##########################
++            ####   Custom logs    ####
++            ##########################
++            episode_reward[i_episode] += sum(reward)
++            episode_user_connected[i_episode] += sum(temp_data[4])
++            user_connected = temp_data[4]
++            
++            # Also calculting episodic reward for each agent // Add this in your main program 
++            episode_reward_agent = np.add(episode_reward_agent, reward)
++
++            states = next_state
++            
++            # If done break from the loop (go to next episode)
++            # if done:
++            #     break
++
++        #############################
++        ####   Tensorboard logs  ####
++        #############################
++        # Track the same information regarding the performance in tensorboard log directory 
++        writer.add_scalar("charts/episodic_reward", episode_reward[i_episode], i_episode)
++        writer.add_scalar("charts/episodic_length", num_epochs, i_episode)
++        writer.add_scalar("charts/connected_users", episode_user_connected[i_episode], i_episode)
++        if args.wandb_track:
++            wandb.log({"episodic_reward": episode_reward[i_episode], "episodic_length": num_epochs, "connected_users":episode_user_connected[i_episode], "global_steps": global_step})
++            # wandb.log({"reward: "+ str(agent): reward[agent] for agent in range(NUM_UAV)})
++            # wandb.log({"connected_users: "+ str(agent_l): user_connected[agent_l] for agent_l in range(NUM_UAV)})
++        global_step += 1
++        
++        # Keep track of hyper parameter and other valuable information in tensorboard log directory 
++        # Track the params of all agent
++        # Since all agents are identical only tracking one agents params
++        writer.add_scalar("params/learning_rate", UAV_OB[1].learning_rate, i_episode )
++        writer.add_scalar("params/epsilon", UAV_OB[1].epsilon_thres, i_episode)
++
++
++        if i_episode % 10 == 0:
++            # Reset of the environment
++            u_env.reset()
++            # Get the states
++            # Get the states
+             states = u_env.get_state()
+-            states_fin = states
+-            if best_result < temp_data[4]:
+-                best_result = temp_data[4]
+-                best_state = states
+-        u_env.render(ax1)
+-            # plt.title("Simulation")
+-            # plt.savefig(r'C:\Users\tripats\Documents\Results_SameParams0017\Simulations\simul' + str(i_episode)  + str(t) + '.png')
+-            # print(drone_act_list)
+-            # print("Number of user connected in ",i_episode," episode is: ", temp_data[4])
+-
+-def smooth(y, pts):
+-    box = np.ones(pts)/pts
+-    y_smooth = np.convolve(y, box, mode='same')
+-    return y_smooth
+-
+-## Save the data from the run as a file
+-mdict = {'num_episode':range(0, num_episode),'episodic_reward': episode_reward}
+-savemat(r'C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\Result\Run002\Position Information with Distance Penalty - Level 3\episodic_reward.mat', mdict)
+-mdict_2 = {'num_episode':range(0, num_episode),'connected_user': episode_user_connected}
+-savemat(r'C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\Result\Run002\Position Information with Distance Penalty - Level 3\connected_user.mat', mdict_2)
+-
+-
+-# Plot the accumulated reward vs episodes
+-fig = plt.figure()
+-plt.plot(range(0, num_episode), episode_reward)
+-plt.xlabel("Episode")
+-plt.ylabel("Episodic Reward")
+-plt.title("Episode vs Episodic Reward")
+-plt.show()
+-fig = plt.figure()
+-plt.plot(range(0, num_episode), episode_user_connected)
+-plt.xlabel("Episode")
+-plt.ylabel("Connected User in Episode")
+-plt.title("Episode vs Connected User in Epsisode")
+-plt.show()
+-fig = plt.figure()
+-smoothed = smooth(episode_reward, 10)
+-plt.plot(range(0, num_episode-10), smoothed[0:len(smoothed)-10] )
+-plt.xlabel("Episode")
+-plt.ylabel("Episodic Reward")
+-plt.title("Smoothed Epidode vs Episodic Reward")
+-plt.show()
+-fig = plt.figure()
+-final_render(states_fin, "final")
+-fig = plt.figure()
+-final_render(best_state, "best")
+-print(states_fin)
+-print('Total Connected User in Final Stage', temp_data[4])
+-print("Best State")
+-print(best_state)
+-print("Total Connected User (Best Outcome)", best_result)
++            for t in range(100):
++                drone_act_list = []
++                for k in range(NUM_UAV):
++                    state = states[k,:].astype(int)
++                    best_next_action = np.argmax(UAV_OB[k].Q[state[0], state[1], :])
++                    drone_act_list.append(best_next_action)
++                temp_data = u_env.step(drone_act_list, args.info_exchange_lvl)
++                states = u_env.get_state()
++                states_fin = states
++                if best_result < temp_data[4]:
++                    best_result = temp_data[4]
++                    best_state = states
++            
++            # Custom logs and figures save / 
++            custom_dir = f'custom_logs\lvl_{args.info_exchange_lvl}\{run_id}'
++            if not os.path.exists(custom_dir):
++                os.makedirs(custom_dir)
++            
++            u_env.render(ax1)
++            plt.title("Simulation")
++            #############################
++            ####   Tensorboard logs  ####
++            #############################
++            # writer.add_figure("images/uav_users", figure, i_episode)
++            writer.add_scalar("charts/connected_users_test", sum(temp_data[4]))
+ 
++            print(drone_act_list)
++            print("Number of user connected in ",i_episode," episode is: ", temp_data[4])
++            print("Total user connected in ",i_episode," episode is: ", sum(temp_data[4]))
++    
++    def smooth(y, pts):
++        box = np.ones(pts)/pts
++        y_smooth = np.convolve(y, box, mode='same')
++        return y_smooth
++
++    ##########################
++    ####   Custom logs    ####
++    ##########################
++    ## Save the data from the run as a file in custom logs
++    mdict = {'num_episode':range(0, num_episode),'episodic_reward': episode_reward}
++    savemat(custom_dir + f'\episodic_reward.mat', mdict)
++    mdict_2 = {'num_episode':range(0, num_episode),'connected_user': episode_user_connected}
++    savemat(custom_dir + f'\connected_users.mat', mdict_2)
++    mdict_3 = {'num_episode':range(0, num_episode),'episodic_reward_agent': episode_reward_agent}
++    savemat(custom_dir + f'\epsiodic_reward_agent.mat', mdict_3)
++    
++    # Plot the accumulated reward vs episodes // Save the figures in the respective directory 
++    # Episodic Reward vs Episodes
++    fig_1 = plt.figure()
++    plt.plot(range(0, num_episode), episode_reward)
++    plt.xlabel("Episode")
++    plt.ylabel("Episodic Reward")
++    plt.title("Episode vs Episodic Reward")
++    plt.savefig(custom_dir + f'\episode_vs_reward.png')
++    plt.close()
++    # Episode vs Connected Users
++    fig_2 = plt.figure()
++    plt.plot(range(0, num_episode), episode_user_connected)
++    plt.xlabel("Episode")
++    plt.ylabel("Connected User in Episode")
++    plt.title("Episode vs Connected User in Episode")
++    plt.savefig(custom_dir + f'\episode_vs_connected_users.png')
++    plt.close()
++    # Episodic Reward vs Episodes (Smoothed)
++    fig_3 = plt.figure()
++    smoothed = smooth(episode_reward, 10)
++    plt.plot(range(0, num_episode-10), smoothed[0:len(smoothed)-10] )
++    plt.xlabel("Episode")
++    plt.ylabel("Episodic Reward")
++    plt.title("Smoothed Episode vs Episodic Reward")
++    plt.savefig(custom_dir + f'\episode_vs_rewards(smoothed).png')
++    plt.close()
++    # Plot for best and final states 
++    fig = plt.figure()
++    final_render(states_fin, "final")
++    plt.savefig(custom_dir + r'\final_users.png')
++    plt.close()
++    fig_4 = plt.figure()
++    final_render(best_state, "best")
++    plt.savefig(custom_dir + r'\best_users.png')
++    plt.close()
++    print(states_fin)
++    print('Total Connected User in Final Stage', temp_data[4])
++    print("Best State")
++    print(best_state)
++    print("Total Connected User (Best Outcome)", best_result)
+ 
++    #############################
++    ####   Tensorboard logs  ####
++    #############################
++    writer.add_figure("images/uav_users_best", fig_4)
++    writer.add_text(
++            "best outcome", str(best_state))
++    writer.add_text(
++            "best result", str(best_result))
++    wandb.finish()
++    writer.close()
+ 
+diff --git a/uav_env.py b/uav_env.py
+index d8ab191..dd8bf69 100644
+--- a/uav_env.py
++++ b/uav_env.py
+@@ -1,11 +1,12 @@
+ ###################################
+ ## Environment Setup of for UAV  ##
+-###################################
++################################### 
++
+ import gym
+ import numpy as np
+ import math
+ import matplotlib.pyplot as plt
+-from matplotlib.animation import FuncAnimation
++import time 
+ 
+ ###################################
+ ##     UAV Class Defination      ##
+@@ -14,25 +15,6 @@ from matplotlib.animation import FuncAnimation
+ class UAVenv(gym.Env):
+     """Custom Environment that follows gym interface """
+     metadata = {'render.modes': ['human']}
+-    # Fixed Input Parameters
+-    NUM_USER = 100                          # Number of ground user
+-    NUM_UAV = 5                             # Number of UAV
+-    Fc = 2                                  # Operating Frequency 2 GHz
+-    LightSpeed = 3 * (10 ** 8)              # Speed of Light
+-    WaveLength = LightSpeed / (Fc * (10 ** 9))  # Wavelength of the wave
+-    COVERAGE_XY = 1000
+-    UAV_HEIGHT = 350
+-    BS_LOC = np.zeros((NUM_UAV, 3))
+-    THETA = 60 * math.pi / 180              # In radian  // Bandwidth for a resource block (This value is representing 2*theta instead of theta)
+-    BW_UAV = 4e6                            # Total Bandwidth per UAV   
+-    BW_RB = 180e3                           # Bandwidth of a Resource Block
+-    ACTUAL_BW_UAV = BW_UAV * 0.9
+-    grid_space = 100
+-    GRID_SIZE = int(COVERAGE_XY / grid_space)  # Each grid defined as 100m block
+-    UAV_DIST_THRS = 1000                     # Distnce that defines the term "neighbours" // UAV closer than this distance share their information
+-    dis_penalty_pri = (1/5)                 # Priority value for defined for the distance penalty // 
+-                                            # // Value ranges from 0 (overlapping UAV doesnot affect reward) to 1 (Prioritizes overlapping area as negative reward to full extent)
+-                                            
+ 
+     ## Polar to Cartesian and vice versa
+     def pol2cart(r,theta):
+@@ -44,10 +26,8 @@ class UAVenv(gym.Env):
+     ############################################################################
+     ##     First User Distribution // Hotspots with Uniform Distribution      ##
+     ############################################################################
+-
+     # User distribution on the target area // NUM_USER/5 users in each of four hotspots
+     # Remaining NUM_USER/5 is then uniformly distributed in the target area
+-
+     # HOTSPOTS = np.array(
+     #     [[200, 200], [800, 800], [300, 800], [800, 300]])  # Position setup in grid size rather than actual distance
+     # USER_DIS = int(NUM_USER / NUM_UAV)
+@@ -85,15 +65,38 @@ class UAVenv(gym.Env):
+     # USER_RB_REQ[np.random.randint(low = 0, high=NUM_USER, size=(NUM_USER,1))] = 1
+     # print(sum(USER_RB_REQ))
+     # np.savetxt('UserRBReq.txt', USER_RB_REQ, delimiter=' ', newline='\n')
++    
+     USER_RB_REQ = np.loadtxt('UserRBReq.txt', delimiter=' ').astype(np.int64)
+ 
+-    def __init__(self):
++    def __init__(self, args):
+         super(UAVenv, self).__init__()
++         
++        # Environment specific params 
++        self.args = args
++        self.NUM_USER = self.args.num_user                      # Number of ground user
++        self.NUM_UAV = self.args.num_uav                        # Number of UAV
++        Fc = self.args.carrier_freq                             # Operating Frequency 2 GHz
++        LightSpeed = 3 * (10 ** 8)                              # Speed of Light
++        self.WaveLength = LightSpeed / (Fc * (10 ** 9))         # Wavelength of the wave
++        self.COVERAGE_XY = self.args.coverage_xy
++        self.UAV_HEIGHT = self.args.uav_height
++        self.BS_LOC = np.zeros((self.NUM_UAV, 3))
++        self.THETA = self.args.theta * math.pi / 180            # In radian  // Bandwidth for a resource block (This value is representing 2*theta instead of theta)
++        self. BW_UAV = self.args.bw_uav                         # Total Bandwidth per UAV   
++        self.BW_RB = self.args.bw_rb                            # Bandwidth of a Resource Block
++        self.ACTUAL_BW_UAV = self.BW_UAV * 0.9
++        self.grid_space = self.args.grid_space
++        self.GRID_SIZE = int(self.COVERAGE_XY / self.grid_space)# Each grid defined as 100m block
++        self.UAV_DIST_THRS = self.args.uav_dis_th               # Distnce that defines the term "neighbours" // UAV closer than this distance share their information
++        self.dis_penalty_pri = self.args.dist_pri_param         # Priority value for defined for the distance penalty // 
++                                                                # // Value ranges from 0 (overlapping UAV doesnot affect reward) to 1 (Prioritizes overlapping area as negative reward to full extent)
++
++
+         # Defining action spaces // UAV RB allocation to each user increase each by 1 untill remains
+         # Five different action for the movement of each UAV
+         # 0 = Right, 1 = Left, 2 = straight, 3 = back, 4 = Hover
+         # Defining Observation spaces // UAV RB to each user
+-        # Position of the UAV in space // X and Y pos
++        # Position of the UAV in space // X and Y pos                                          
+         self.u_loc = self.USER_LOC
+         self.state = np.zeros((self.NUM_UAV, 3), dtype=np.int32)
+         # Set the states to the hotspots and one at the centre for faster convergence
+@@ -106,7 +109,7 @@ class UAVenv(gym.Env):
+         self.flag = [0, 0, 0, 0, 0]
+         print(self.coverage_radius)
+ 
+-    def step(self, action):
++    def step(self, action, info_exchange_lvl):
+         # Take the action
+         # Assignment of sub carrier band to users
+         # Reshape of actions
+@@ -119,6 +122,7 @@ class UAVenv(gym.Env):
+             temp_x = self.state[i, 0]
+             temp_y = self.state[i, 1]
+             # One Step Action
++            # print(action)
+             if action[i] == 0:
+                 self.state[i, 0] = self.state[i, 0] + 1
+             elif action[i] == 1:
+@@ -210,7 +214,6 @@ class UAVenv(gym.Env):
+             # Actual index of the users that send connection request sorted based on the distance value
+             temp_user_actual_idx = temp_user[0, temp_user_sorted]
+             # Set user association flag to 1 for that UAV and closest user index
+-            # rb_allocated = 0
+             # Iterate over the sorted user index and allocate RB is only available
+             for user_index in temp_user_actual_idx[0]:
+                 if self.USER_RB_REQ[user_index] + rb_allocated[i] <= cap_rb_num:
+@@ -239,50 +242,53 @@ class UAVenv(gym.Env):
+         ################################################################
+         ##     Opt.1  No. of User Connected as Indiviudal Reward      ##
+         ################################################################
+-        # sum_user_assoc = np.sum(user_asso_flag, axis = 1)
+-        # reward_solo = np.zeros(np.size(sum_user_assoc), dtype="float32")
+-        # for k in range(self.NUM_UAV):
+-        #     if self.flag[k] != 0:
+-        #         reward_solo[k] = np.copy(sum_user_assoc[k] - 2)
+-        #         isDone = True
+-        #     else:
+-        #         reward_solo[k] = np.copy(sum_user_assoc[k]) 
+-        # reward = np.copy(reward_solo)
++        if info_exchange_lvl == 1 or info_exchange_lvl == 4:
++            sum_user_assoc = np.sum(user_asso_flag, axis = 1)
++            reward_solo = np.zeros(np.size(sum_user_assoc), dtype="float32")
++            for k in range(self.NUM_UAV):
++                if self.flag[k] != 0:
++                    reward_solo[k] = np.copy(sum_user_assoc[k] - 2)
++                    isDone = True
++                else:
++                    reward_solo[k] = np.copy(sum_user_assoc[k]) 
++            reward = np.copy(reward_solo)
+ 
+         #############################################################################################
+         ##     Opt.2  No. of User Connected as Indiviudal Reward with Penalty Over Buffer Area     ##
+         #############################################################################################
+-        # sum_user_assoc = np.sum(user_asso_flag, axis = 1)
+-        # reward_solo = np.zeros(np.size(sum_user_assoc), dtype = "float32")
+-        # penalty_overlap = penalty_overlap.flatten()
+-        # for k in range(self.NUM_UAV):
+-        #     if self.flag[k] != 0:
+-        #         reward_solo[k] = np.copy(sum_user_assoc[k] - 2) - penalty_overlap[k]
+-        #         isDone = True
+-        #     else:
+-        #         reward_solo[k] = (sum_user_assoc[k] - penalty_overlap[k])
+-        # # Calculation of reward based in the change in the number of connected user
+-        # reward = np.copy(reward_solo)
++        elif info_exchange_lvl == 3:
++            sum_user_assoc = np.sum(user_asso_flag, axis = 1)
++            reward_solo = np.zeros(np.size(sum_user_assoc), dtype = "float32")
++            penalty_overlap = penalty_overlap.flatten()
++            for k in range(self.NUM_UAV):
++                if self.flag[k] != 0:
++                    reward_solo[k] = np.copy(sum_user_assoc[k] - 2) - penalty_overlap[k]
++                    isDone = True
++                else:
++                    reward_solo[k] = (sum_user_assoc[k] - penalty_overlap[k])
++            # Calculation of reward based in the change in the number of connected user
++            reward = np.copy(reward_solo)
+ 
+         # Collective reward exchange of nuumber of user associated and calculation of the reward based on it
+         # Only share the information to the neighbours based on distance values
+         ################################################################
+         ##     Opt.3  No. of User Connected as Collective Reward      ##
+         ################################################################
+-        # sum_user_assoc = np.sum(user_asso_flag, axis = 1)
+-        # sum_user_assoc_temp = np.copy(sum_user_assoc)
+-        # reward_ind = np.zeros(np.size(sum_user_assoc))
+-        # reward = 0
+-        # for k in range(self.NUM_UAV):
+-        #     if self.flag[k] != 0:
+-        #         sum_user_assoc_temp[k] -= 2
+-        #         temp_user_id = np.where(dist_uav_uav[k, :] <= self.UAV_DIST_THRS)
+-        #         reward_ind[k] = np.average(sum_user_assoc_temp[temp_user_id])
+-        #         isDone = True
+-        #     else:
+-        #         temp_user_id = np.where(dist_uav_uav[k, :] <= self.UAV_DIST_THRS)
+-        #         reward_ind[k] = np.average(sum_user_assoc[temp_user_id])
+-        # reward = np.copy(reward_ind)
++        elif info_exchange_lvl == 2:    
++            sum_user_assoc = np.sum(user_asso_flag, axis = 1)
++            sum_user_assoc_temp = np.copy(sum_user_assoc)
++            reward_ind = np.zeros(np.size(sum_user_assoc))
++            reward = 0
++            for k in range(self.NUM_UAV):
++                if self.flag[k] != 0:
++                    temp_user_id = np.where(dist_uav_uav[k, :] <= self.UAV_DIST_THRS)
++                    reward_ind[k] = np.average(sum_user_assoc_temp[temp_user_id])
++                    reward_ind[k] -= 2
++                    isDone = True
++                else:
++                    temp_user_id = np.where(dist_uav_uav[k, :] <= self.UAV_DIST_THRS)
++                    reward_ind[k] = np.average(sum_user_assoc[temp_user_id])
++            reward = np.copy(reward_ind)
+ 
+         
+         # Defining the reward function by the number of covered user
+@@ -292,7 +298,7 @@ class UAVenv(gym.Env):
+         # reward = np.copy(total_user_covered)
+ 
+         # Return of obs, reward, done, info
+-        return np.copy(self.state).reshape(1, self.NUM_UAV * 3), reward, isDone, "empty", sum(sum_user_assoc), rb_allocated
++        return np.copy(self.state).reshape(1, self.NUM_UAV * 3), reward, isDone, "empty", sum_user_assoc, rb_allocated
+ 
+ 
+     def render(self, ax, mode='human', close=False):

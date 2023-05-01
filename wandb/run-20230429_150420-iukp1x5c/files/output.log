@@ -1,0 +1,6 @@
+
+0
+Traceback (most recent call last):
+  File "C:\Users\tripats\Documents\GitHub\UAV_Subband_Allocation_QLearning\main.py", line 222, in <module>
+    temp_data = u_env.step(drone_act_list)
+TypeError: UAVenv.step() missing 1 required positional argument: 'info_exchange_lvl'

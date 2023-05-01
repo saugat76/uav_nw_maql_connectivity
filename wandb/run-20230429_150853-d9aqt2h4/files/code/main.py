@@ -31,7 +31,7 @@ def parse_args():
     parser.add_argument("--torch-deterministic", type= lambda x:bool(strtobool(x)), default=True, nargs="?", const=True, help="if toggeled, 'torch-backends.cudnn.deterministic=False'")
     parser.add_argument("--cuda", type=lambda x: bool(strtobool(x)), default=True, nargs="?", const=True, help="if toggled, cuda will be enabled by default")
     parser.add_argument("--wandb-track", type=lambda x: bool(strtobool(x)), default=False, help="if toggled, this experiment will be tracked with Weights and Biases project")
-    parser.add_argument("--wandb-name", type=str, default="UAV_Subband_Allocation_QL_Pytorch", help="project name in Weight and Biases")
+    parser.add_argument("--wandb-name", type=str, default="UAV_Subband_Allocation_DQN_Pytorch", help="project name in Weight and Biases")
     parser.add_argument("--wandb-entity", type=str, default= None, help="entity(team) for Weights and Biases project")
 
     # Arguments specific to the Algotithm used 
@@ -39,7 +39,7 @@ def parse_args():
     parser.add_argument("--num-env", type=int, default=1, help="number of parallel environment")
     parser.add_argument("--num-episode", type=int, default=351, help="number of episode, default value till the trainning is progressed")
     parser.add_argument("--num-steps", type=int, default= 100, help="number of steps/epoch use in every episode")
-    parser.add_argument("--learning-rate", type=float, default= 0.5, help="learning rate of the dql alggorithm used by every agent")
+    parser.add_argument("--learning-rate", type=float, default= 3.5e-4, help="learning rate of the dql alggorithm used by every agent")
     parser.add_argument("--gamma", type=float, default= 0.95, help="discount factor used for the calculation of q-value, can prirotize future reward if kept high")
     parser.add_argument("--batch-size", type=int, default= 512, help="batch sample size used in a trainning batch")
     parser.add_argument("--epsilon", type=float, default= 0.1, help="epsilon to set the eploration vs exploitation")
@@ -267,8 +267,8 @@ if __name__ == "__main__":
         # Keep track of hyper parameter and other valuable information in tensorboard log directory 
         # Track the params of all agent
         # Since all agents are identical only tracking one agents params
-        # writer.add_scalar("params/learning_rate", UAV_OB[1].learning_rate, i_episode )
-        # writer.add_scalar("params/epsilon", UAV_OB[1].epsilon_thres, i_episode)
+        writer.add_scalar("params/learning_rate", UAV_OB[1].learning_rate, i_episode )
+        writer.add_scalar("params/epsilon", UAV_OB[1].epsilon_thres, i_episode)
 
 
         if i_episode % 10 == 0:
@@ -286,8 +286,8 @@ if __name__ == "__main__":
                 temp_data = u_env.step(drone_act_list, args.info_exchange_lvl)
                 states = u_env.get_state()
                 states_fin = states
-                if best_result < sum(temp_data[4]):
-                    best_result = sum(temp_data[4])
+                if best_result < temp_data[4]:
+                    best_result = temp_data[4]
                     best_state = states
             
             # Custom logs and figures save / 

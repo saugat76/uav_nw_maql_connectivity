@@ -1,0 +1,70 @@
+diff --git a/__pycache__/misc.cpython-310.pyc b/__pycache__/misc.cpython-310.pyc
+index 0788f62..85e6428 100644
+Binary files a/__pycache__/misc.cpython-310.pyc and b/__pycache__/misc.cpython-310.pyc differ
+diff --git a/main.py b/main.py
+index 3e2da70..7479d5d 100644
+--- a/main.py
++++ b/main.py
+@@ -363,6 +363,7 @@ if __name__ == "__main__":
+     print("Best State")
+     print(best_state)
+     print("Total Connected User (Best Outcome)", best_result)
++    plt.close()
+ 
+     #############################
+     ####   Tensorboard logs  ####
+diff --git a/misc.py b/misc.py
+index 813fb67..2a7aaff 100644
+--- a/misc.py
++++ b/misc.py
+@@ -32,5 +32,4 @@ def final_render(state, remark):
+         plt.title("Final state of UAV")
+     plt.pause(0.5)
+     plt.xlim(-50, 1050)
+-    plt.ylim(-50, 1050)
+-    plt.show()
++    plt.ylim(-50, 1050)
+\ No newline at end of file
+diff --git a/run.py b/run.py
+index 1c45eba..934e4e7 100644
+--- a/run.py
++++ b/run.py
+@@ -6,7 +6,7 @@ for i in range(1, 4):
+     print('####  Running the code for Level:', i, "info exchange  ####")
+     print('#######################################################')
+     p = subprocess.run(["python", "uav_env.py"])
+-    g = subprocess.run(["python", "main.py", "--info-exchange-lvl", str(i), "--num-episode", str(450)])
++    g = subprocess.run(["python", "main.py", "--info-exchange-lvl", str(i), "--num-episode", str(1000), "--wandb-track", "True", "--learning-rate", str(0.25)])
+ 
+ # ## Running for level 3 with different distance values
+ # for i in range(0,1000, 250):
+diff --git a/runs/maql_uav__lvl1__5__1__1682795749/events.out.tfevents.1682795751.CEC-ZHANGR43776.18616.0 b/runs/maql_uav__lvl1__5__1__1682795749/events.out.tfevents.1682795751.CEC-ZHANGR43776.18616.0
+deleted file mode 100644
+index 14166c4..0000000
+Binary files a/runs/maql_uav__lvl1__5__1__1682795749/events.out.tfevents.1682795751.CEC-ZHANGR43776.18616.0 and /dev/null differ
+diff --git a/wandb/debug-cli.tripats.log b/wandb/debug-cli.tripats.log
+index eafaee5..23c558c 100644
+--- a/wandb/debug-cli.tripats.log
++++ b/wandb/debug-cli.tripats.log
+@@ -10,3 +10,21 @@
+ 2023-04-29 15:09:25 INFO NumExpr defaulting to 8 threads.
+ 2023-04-29 15:12:10 INFO Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
+ 2023-04-29 15:12:10 INFO NumExpr defaulting to 8 threads.
++2023-04-29 15:18:44 INFO Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
++2023-04-29 15:18:44 INFO NumExpr defaulting to 8 threads.
++2023-04-29 15:22:25 INFO Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
++2023-04-29 15:22:25 INFO NumExpr defaulting to 8 threads.
++2023-04-29 15:26:11 INFO Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
++2023-04-29 15:26:11 INFO NumExpr defaulting to 8 threads.
++2023-04-29 15:32:15 INFO Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
++2023-04-29 15:32:15 INFO NumExpr defaulting to 8 threads.
++2023-04-29 15:34:26 INFO Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
++2023-04-29 15:34:26 INFO NumExpr defaulting to 8 threads.
++2023-04-29 15:36:39 INFO Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
++2023-04-29 15:36:39 INFO NumExpr defaulting to 8 threads.
++2023-04-30 21:56:55 INFO Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
++2023-04-30 21:56:55 INFO NumExpr defaulting to 8 threads.
++2023-04-30 21:59:42 INFO Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
++2023-04-30 21:59:42 INFO NumExpr defaulting to 8 threads.
++2023-04-30 22:02:28 INFO Note: NumExpr detected 16 cores but "NUMEXPR_MAX_THREADS" not set, so enforcing safe limit of 8.
++2023-04-30 22:02:28 INFO NumExpr defaulting to 8 threads.

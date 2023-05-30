@@ -1,0 +1,17 @@
+diff --git a/run.py b/run.py
+index 1c45eba..ef1883a 100644
+--- a/run.py
++++ b/run.py
+@@ -6,7 +6,7 @@ for i in range(1, 4):
+     print('####  Running the code for Level:', i, "info exchange  ####")
+     print('#######################################################')
+     p = subprocess.run(["python", "uav_env.py"])
+-    g = subprocess.run(["python", "main.py", "--info-exchange-lvl", str(i), "--num-episode", str(450)])
++    g = subprocess.run(["python", "main.py", "--info-exchange-lvl", str(i), "--num-episode", str(450), "--wandb-track", "True"])
+ 
+ # ## Running for level 3 with different distance values
+ # for i in range(0,1000, 250):
+diff --git a/runs/maql_uav__lvl1__5__1__1682795749/events.out.tfevents.1682795751.CEC-ZHANGR43776.18616.0 b/runs/maql_uav__lvl1__5__1__1682795749/events.out.tfevents.1682795751.CEC-ZHANGR43776.18616.0
+deleted file mode 100644
+index 14166c4..0000000
+Binary files a/runs/maql_uav__lvl1__5__1__1682795749/events.out.tfevents.1682795751.CEC-ZHANGR43776.18616.0 and /dev/null differ

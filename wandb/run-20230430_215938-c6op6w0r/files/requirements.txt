@@ -52,7 +52,7 @@ opt-einsum==3.3.0
 packaging==21.3
 pandas==1.4.3
 pathtools==0.1.2
-pillow==9.4.0
+pillow==10.0.1
 pip==22.1.2
 protobuf==3.20.3
 psutil==5.9.4

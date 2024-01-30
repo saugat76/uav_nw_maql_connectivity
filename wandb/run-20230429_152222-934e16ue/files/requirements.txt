@@ -1,5 +1,5 @@
 absl-py==1.3.0
-aiohttp==3.9.0
+aiohttp==3.9.2
 aiosignal==1.2.0
 amply==0.1.5
 appdirs==1.4.4
